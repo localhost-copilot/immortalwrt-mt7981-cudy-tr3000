@@ -112,7 +112,7 @@ jobs:
       - name: 🔮 Compile the firmware
         id: compile
         env:
-          CCACHE_DIR: /workdir/.ccache
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: |
           cd openwrt
           echo -e "$(nproc) thread compile"
