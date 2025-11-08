@@ -17,6 +17,7 @@ on:
   workflow_dispatch:
 
 env:
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
   FEEDS_CONF: feeds.conf.default
@@ -42,7 +43,7 @@ jobs:
         id: cache-ccache
         uses: actions/cache@v3
         with:
-          path: /workdir/.ccache
+          path: ${{ github.workspace }}/.ccache
           key: ${{ runner.os }}-ccache-${{ hashFiles('**/.config') }}-${{ env.REPO_BRANCH }}
           restore-keys: |
             ${{ runner.os }}-ccache-
