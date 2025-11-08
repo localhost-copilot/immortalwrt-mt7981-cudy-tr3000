@@ -38,7 +38,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup ccache cache
+      - name: ⚙️ Setup ccache cache
         id: cache-ccache
         uses: actions/cache@v3
         with:
@@ -47,7 +47,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ccache-
 
-      - name: Setup downloads and build cache
+      - name: ⚙️ Setup downloads and build cache
         id: cache-dl-build
         uses: actions/cache@v3
         with:
@@ -58,7 +58,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-
 
-      - name: Initialization environment
+      - name: 🛠️ Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
