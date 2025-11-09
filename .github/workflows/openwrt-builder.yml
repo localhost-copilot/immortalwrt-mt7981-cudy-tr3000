@@ -16,8 +16,14 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
+# 防止多个构建同时运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  CCACHE_DIR: ${{ github.workspace }}/.ccache
+  CCACHE_DIR: /workdir/.ccache
+  CCACHE_MAXSIZE: 6G
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
   FEEDS_CONF: feeds.conf.default
@@ -35,49 +41,39 @@ jobs:
 
     steps:
       - name: 🙌 Checkout
-        uses: actions/checkout@main
-        with:
-          fetch-depth: 0
-
-      - name: ⚙️ Setup ccache cache
-        id: cache-ccache
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/.ccache
-          key: ${{ runner.os }}-ccache-${{ hashFiles('**/.config') }}-${{ env.REPO_BRANCH }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-
-
-      - name: ⚙️ Setup downloads and build cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ github.workspace }}/openwrt/dl
-            ${{ github.workspace }}/openwrt/build_dir
-          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-${{ hashFiles('**/.config') }}
-          restore-keys: |
-            ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-
+        uses: actions/checkout@v4
 
       - name: 🛠️ Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
+          echo "🔧 Cleaning up disk space..."
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
+
+          echo "📦 Installing dependencies..."
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
+
+          echo "⏰ Setting timezone to $TZ"
           sudo timedatectl set-timezone "$TZ"
+
+          echo "📁 Creating workdir"
           sudo mkdir -p /workdir
           sudo chown $USER:$GROUPS /workdir
+
+          echo "💾 Disk space after cleanup:"
+          df -hT
 
       - name: 🪜 Clone source code
         working-directory: /workdir
         run: |
-          df -hT $PWD
+          echo "📥 Cloning $REPO_URL (branch: $REPO_BRANCH)"
           git clone $REPO_URL -b $REPO_BRANCH --single-branch --filter=blob:none openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+          echo "✅ Source code cloned successfully"
 
       - name: ⚙️ Load custom feeds
         run: |
@@ -100,39 +96,104 @@ jobs:
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P2_SH
 
-      - name: 🕹️ Download package
-        id: package
+      - name: 📝 Generate config hash for cache
+        id: config-hash
         run: |
           cd openwrt
           make defconfig
+          CONFIG_HASH=$(md5sum .config | awk '{print $1}')
+          echo "hash=$CONFIG_HASH" >> $GITHUB_OUTPUT
+          echo "📋 Config hash: $CONFIG_HASH"
+
+      - name: ⚙️ Setup ccache cache
+        uses: actions/cache@v4
+        with:
+          path: /workdir/.ccache
+          key: ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-
+            ${{ runner.os }}-ccache-
+
+      - name: ⚙️ Setup downloads cache
+        uses: actions/cache@v4
+        with:
+          path: /workdir/openwrt/dl
+          key: ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
+          restore-keys: |
+            ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-
+            ${{ runner.os }}-openwrt-dl-
+
+      - name: 🔧 Configure ccache
+        run: |
+          ccache --set-config=max_size=$CCACHE_MAXSIZE
+          ccache --set-config=cache_dir=$CCACHE_DIR
+          ccache --set-config=compression=true
+          ccache --set-config=compression_level=6
+          ccache -z
+          echo "✅ ccache configured with max size: $CCACHE_MAXSIZE"
+
+      - name: 🕹️ Download packages
+        id: package
+        run: |
+          cd openwrt
+          echo "📦 Downloading packages..."
           make download -j$(nproc)
+          echo "🔍 Checking for failed downloads..."
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
 
       - name: 🔮 Compile the firmware
         id: compile
-        env:
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: |
           cd openwrt
-          echo -e "$(nproc) thread compile"
-          # Enable ccache and build
-          make -j$(nproc) CC="ccache gcc" CXX="ccache g++" || make -j1 || make -j1 V=s
-          echo "status=success" >> $GITHUB_OUTPUT
+          echo "🔨 Starting compilation with $(nproc) threads"
+          echo "CCACHE_DIR: $CCACHE_DIR"
+
+          # 首先尝试多线程编译
+          if make -j$(nproc) CC="ccache gcc" CXX="ccache g++"; then
+            echo "✅ Multi-threaded compilation succeeded"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Multi-threaded compilation failed, retrying with single thread and verbose output..."
+            make -j1 V=s
+            if [ $? -eq 0 ]; then
+              echo "✅ Single-threaded compilation succeeded"
+              echo "status=success" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Compilation failed"
+              echo "status=failure" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          fi
+
+          # 显示 ccache 统计
+          echo "📊 ccache statistics:"
+          ccache -s
+
+          # 获取设备名称
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
           [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
           echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
+          echo "📱 Device: $(cat DEVICE_NAME 2>/dev/null || echo 'unknown')"
+          echo "📅 Build date: $(date +"%Y-%m-%d %H:%M:%S")"
+
       - name: 🛠️ Check space usage
         if: (!cancelled())
-        run: df -hT
+        run: |
+          echo "💾 Disk space usage:"
+          df -hT
+          echo ""
+          echo "📊 Build directory size:"
+          du -sh /workdir/openwrt 2>/dev/null || echo "Unable to calculate"
 
       - name: 🪄 Upload bin directory
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
         with:
           name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: openwrt/bin
+          compression-level: 9
 
       - name: ⌚ Organize files
         id: organize
@@ -140,27 +201,49 @@ jobs:
         run: |
           cd openwrt/bin/targets/*/*
           rm -rf packages
+          echo "📂 Firmware files:"
+          ls -lh
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: 📢 Upload firmware directory
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         if: steps.organize.outputs.status == 'success' && !cancelled()
         with:
           name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE }}
+          compression-level: 9
 
       - name: 📌 Generate release tag
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
-          touch release.txt
-          [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+          RELEASE_TAG=$(date +"%Y.%m.%d-%H%M")
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+          # 生成 release 信息
+          cat > release.txt << EOF
+          ## 📦 OpenWrt Firmware Release
+
+          **🏷️ Release:** $RELEASE_TAG
+          **🌿 Branch:** $REPO_BRANCH
+          **📱 Device:** $(cat openwrt/DEVICE_NAME 2>/dev/null || echo 'N/A')
+          **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
+          **🔨 Compiler:** GCC with ccache
+
+          ### 📥 Download
+
+          Download the firmware files from the assets below.
+
+          ---
+
+          Built with ❤️ using [GitHub Actions](https://github.com/features/actions)
+          EOF
+
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: 📤 Upload firmware to release
-        uses: softprops/action-gh-release@master
+        uses: softprops/action-gh-release@v2
         if: steps.tag.outputs.status == 'success' && !cancelled()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -169,14 +252,14 @@ jobs:
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
 
-      - name: 🚧 Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@main
+      - name: 🚧 Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
         with:
           retain_days: 0
           keep_minimum_runs: 2
 
-      - name: 🗑️ Remove old Releases
-        uses: dev-drprasad/delete-older-releases@master
+      - name: 🗑️ Remove old releases
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         with:
           keep_latest: 3
