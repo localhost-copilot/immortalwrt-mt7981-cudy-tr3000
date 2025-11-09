@@ -231,7 +231,7 @@ jobs:
           **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
           **🔨 Compiler:** GCC with ccache
 
-          ### 📥 Download
+          ## 📥 Download
 
           Download the firmware files from the assets below.
 
@@ -250,8 +250,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
-          files: ${{ env.FIRMWARE }}/*
-
+          files: ${{ env.FIRMWARE }}/*sysupgrade.bin
       - name: 🚧 Delete old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
