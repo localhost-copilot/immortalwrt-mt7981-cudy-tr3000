@@ -111,8 +111,7 @@ jobs:
           path: /workdir/.ccache
           key: ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
           restore-keys: |
-            ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-
-            ${{ runner.os }}-ccache-
+            ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
 
       - name: ⚙️ Setup downloads cache
         uses: actions/cache@v4
@@ -120,8 +119,7 @@ jobs:
           path: /workdir/openwrt/dl
           key: ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
           restore-keys: |
-            ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-
-            ${{ runner.os }}-openwrt-dl-
+            ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
 
       - name: 🔧 Configure ccache
         run: |
