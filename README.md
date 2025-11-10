@@ -8,6 +8,9 @@ third-party packages:
 - [OpenClash](https://github.com/vernesong/OpenClash)
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
+- luci-app-upnp
+- kmod-usb-net-cdc-ether
+- kmod-usb-net-rndis
 
 ## Credits
 
