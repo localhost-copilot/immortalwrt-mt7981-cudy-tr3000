@@ -4,6 +4,18 @@
 
 Build from https://github.com/padavanonly/immortalwrt-mt798x-6.6
 
+If you want to turn off USB Power, run
+
+```bash
+echo 0 > /sys/class/gpio/modem_power/value
+```
+
+and get the power back by
+
+```bash
+echo 1 > /sys/class/gpio/modem_power/value
+```
+
 third-party packages:
 - [OpenClash](https://github.com/vernesong/OpenClash)
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
