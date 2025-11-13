@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: OpenWrt Builder
+name: OpenWrt Builder 256M
 
 on:
   repository_dispatch:
@@ -27,7 +27,7 @@ env:
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .config
+  CONFIG_FILE: config/256m.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -110,16 +110,12 @@ jobs:
         with:
           path: /workdir/.ccache
           key: ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
 
       - name: ⚙️ Setup downloads cache
         uses: actions/cache@v4
         with:
           path: /workdir/openwrt/dl
           key: ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
-          restore-keys: |
-            ${{ runner.os }}-openwrt-dl-${{ env.REPO_BRANCH }}-${{ steps.config-hash.outputs.hash }}
 
       - name: 🔧 Configure ccache
         run: |
