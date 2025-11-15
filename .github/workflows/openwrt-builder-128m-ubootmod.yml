@@ -214,7 +214,7 @@ jobs:
         run: |
           FIRMWARE_NAME="128M Ubootmod"
           BUILD_TIME=$(date +"%Y%m%d-%H%M")
-          RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
+          RELEASE_TAG="${FIRMWARE_NAME// /_}-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
           # 生成 release 信息
