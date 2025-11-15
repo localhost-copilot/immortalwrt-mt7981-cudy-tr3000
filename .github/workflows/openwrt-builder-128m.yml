@@ -24,7 +24,7 @@ concurrency:
 env:
   CCACHE_DIR: /workdir/.ccache
   CCACHE_MAXSIZE: 6G
-  REPO_URL: https://github.com/weekdaycare/immortalwrt-mt798x-6.6
+  REPO_URL: https://github.com/weekdaycare/immortalwrt-mt798x-6.6 # 新flash固件测试用
   REPO_BRANCH: openwrt-24.10-6.6
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: config/128m.config
@@ -212,7 +212,9 @@ jobs:
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          RELEASE_TAG=$(date +"%Y.%m.%d-%H%M")
+          FIRMWARE_NAME="128M"
+          BUILD_TIME=$(date +"%Y%m%d-%H%M")
+          RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
           # 生成 release 信息
@@ -245,6 +247,7 @@ jobs:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*sysupgrade.bin
+
       - name: 🚧 Delete old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
@@ -255,7 +258,7 @@ jobs:
         uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         with:
-          keep_latest: 3
+          keep_latest: 6
           delete_tags: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
