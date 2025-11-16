@@ -260,7 +260,8 @@ jobs:
         uses: dev-drprasad/delete-older-releases@v0.3.4
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         with:
-          keep_latest: 6
+          keep_latest: 3
           delete_tags: true
+          release_name_prefix: "256M-"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
