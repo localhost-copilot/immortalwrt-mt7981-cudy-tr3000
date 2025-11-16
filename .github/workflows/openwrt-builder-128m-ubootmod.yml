@@ -262,6 +262,6 @@ jobs:
         with:
           keep_latest: 3
           delete_tags: true
-          release_name_prefix: "128M_Ubootmod-"
+          delete_tag_pattern: "^128M_Ubootmod-.*$"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
