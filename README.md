@@ -26,7 +26,7 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## Notice
 
-由于 Github 储存限制，若你想在固件中集成 sing-box 或者 xray-core 这种大型软件包，建议使用预编译文件，即在编译过程中加入已经编译好现成软件包，而非从源码构建。否则你应该会碰到超长编译时间 + 超出 Action 储存 (14~16G左右)。
+由于 Github 储存限制，若你想在固件中集成 sing-box 或者 xray-core 这种大型软件包，建议使用预编译文件，即在编译过程中加入已经编译好现成软件包，而非从源码构建。否则你应该会碰到超长编译时间 + 超出 Action 储存。
 
 这里举个例子，在 diy-part2.sh 脚本中写入
 
