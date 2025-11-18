@@ -23,11 +23,11 @@
 sed -i '/modem-power/,/};/{s/gpio-export,output = <1>;/gpio-export,output = <0>;/}' target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1.dtsi
 
 # Add OpenClash Meta
-mkdir -p files/etc/openclash/core
+mkdir -p files/etc/openclash/core/clash_meta
 META_CORE_URL="https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz"
 TMP_META_FILE="/tmp/clash_meta.tar.gz"
 
-wget -qO- "$META_CORE_URL" > "$TMP_META_FILE"
-tar -zxvf "$TMP_META_FILE" -C files/etc/openclash/core
-chmod +x files/etc/openclash/core/clash_meta
+wget -qO "$TMP_META_FILE" "$META_CORE_URL"
+tar -zxvf "$TMP_META_FILE" -C files/etc/openclash/core/clash_meta/
+chmod +x files/etc/openclash/core/clash_meta/clash
 rm -f "$TMP_META_FILE"
