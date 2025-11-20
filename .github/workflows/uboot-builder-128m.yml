@@ -1,0 +1,132 @@
+name: 798x-UBOOT
+
+on:
+  schedule:
+    - cron: 0 0 1 * *
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  WRT_TARGET: MTK-798x
+  WRT_REPO: https://github.com/weekdaycare/bl-mt798x-oss.git
+  WRT_BRANCH: fit-example
+
+permissions: write-all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      #max-parallel: 4
+      matrix:
+        WRT_ATF: [atf-20240117-bacca82a8]
+        WRT_MTK: [uboot-mtk-20220606]
+
+    steps:
+      - name: Checkout Projects
+        uses: actions/checkout@main
+
+      - name: ⚙️ Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt -yqq purge firefox
+          sudo -E apt -yqq update
+          sudo -E apt -yqq full-upgrade
+          sudo -E apt -yqq autoremove --purge
+          sudo -E apt -yqq autoclean
+          sudo -E apt -yqq clean
+          sudo -E apt -yqq install dos2unix bison build-essential device-tree-compiler flex gcc-aarch64-linux-gnu libssl-dev qemu-user-static
+          sudo -E systemctl daemon-reload
+          sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+          sudo mkdir -p /mnt/build_wrt
+          sudo chown $USER:$USER /mnt/build_wrt
+          sudo ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
+
+      - name: ⚙️ Initialization Values
+        run: |
+          echo "WRT_AUTHOR=$(echo $WRT_REPO | cut -d '/' -f 4)" >> $GITHUB_ENV
+          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")" >> $GITHUB_ENV
+          echo "WRT_VER=$(echo ${{matrix.WRT_ATF}} | grep -oP 'atf-\d+')_$(echo ${{matrix.WRT_MTK}} | grep -oP 'mtk-\d+')" >> $GITHUB_ENV
+
+      - name: ⬇️ Clone Code
+        run: |
+          git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
+
+      - name: ⚙️ Compile Prepare
+        run: |
+          sed -i "4s/UBOOT_DIR=.*/UBOOT_DIR=${{matrix.WRT_MTK}}/" ./wrt/build.sh
+          sed -i "7s/ATF_DIR=.*/ATF_DIR=${{matrix.WRT_ATF}}/" ./wrt/build.sh
+
+          mkdir -p ./wrt
+          echo "SOC=mt7981 BOARD=cudy_tr3000-v1 ./build.sh" > ./wrt/Uboots.sh
+          chmod +x ./wrt/Uboots.sh
+
+      - name: 🛠️ Compile Firmware
+        run: |
+          cd ./wrt/
+          ./Uboots.sh
+
+      - name: 📦 Package Firmware
+        run: |
+          cd ./wrt/ && mkdir ./upload/
+
+          for FILE in $(find ./output/ -type f -iname "*.*") ; do
+            EXT=$(basename $FILE | cut -d '.' -f 2-)
+            NAME=$(basename $FILE | cut -d '.' -f 1)
+            NEW_FILE="$NAME"_"$WRT_VER"_"$WRT_DATE"."$EXT"
+            mv -f $FILE ./upload/$NEW_FILE
+          done
+
+          zip -r ./upload/"$WRT_AUTHOR"_"$WRT_VER"_"$WRT_DATE".zip ./upload/*.*
+
+      - name: 📌 Generate release tag
+        id: tag
+        run: |
+          FIRMWARE_NAME="uboot-128M"
+          BUILD_TIME=$(date +"%Y%m%d-%H%M")
+          RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+          # 生成 release 信息
+          cat > release.txt << EOF
+          ## 📦 Uboot Firmware Release
+
+          **🏷️ Release:** $RELEASE_TAG
+          **📦 Repo:** $WRT_REPO
+          **🌿 Branch:** $WRT_BRANCH
+          **📱 ATF:** $matrix.WRT_ATF
+          **📱 MTK:** $matrix.WRT_MTK
+          **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
+
+          ## 📥 Download
+
+          Download the firmware files from the assets below.
+
+          ---
+
+          Built with ❤️ using [GitHub Actions](https://github.com/features/actions)
+          EOF
+
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 📤 Upload firmware to release
+        uses: softprops/action-gh-release@v2
+        if: steps.tag.outputs.status == 'success' && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          body_path: release.txt
+          files: ./wrt/upload/*.bin
+
+      - name: 🗑️ Remove old releases
+        uses: dev-drprasad/delete-older-releases@v0.3.4
+        with:
+          keep_latest: 1
+          delete_tags: true
+          delete_tag_pattern: "^uboot-.*$"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
