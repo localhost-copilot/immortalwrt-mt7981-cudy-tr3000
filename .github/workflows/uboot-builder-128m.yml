@@ -89,6 +89,8 @@ jobs:
           BUILD_TIME=$(date +"%Y%m%d-%H%M")
           RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          ATF_VERSION=${{ matrix.WRT_ATF }}
+          MTK_VERSION=${{ matrix.WRT_MTK }}
 
           # 生成 release 信息
           cat > release.txt << EOF
@@ -97,8 +99,8 @@ jobs:
           **🏷️ Release:** $RELEASE_TAG
           **📦 Repo:** $WRT_REPO
           **🌿 Branch:** $WRT_BRANCH
-          **📱 ATF:** $matrix.WRT_ATF
-          **📱 MTK:** $matrix.WRT_MTK
+          **📱 ATF:** $ATF_VERSION
+          **📱 MTK:** $MTK_VERSION
           **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
 
           ## 📥 Download
