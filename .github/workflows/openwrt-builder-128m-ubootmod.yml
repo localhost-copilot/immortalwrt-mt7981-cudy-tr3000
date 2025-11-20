@@ -233,6 +233,10 @@ jobs:
 
           Download the firmware files from the assets below.
 
+          ## 🚧 Notice
+
+          该固件为 122M 大分区固件，请配合本仓库的 uboot 使用
+
           ---
 
           Built with ❤️ using [GitHub Actions](https://github.com/features/actions)

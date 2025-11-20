@@ -1,5 +1,7 @@
 **Chinese** | [教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
 
+> 本仓库编译的 uboot 与 ubootmod 固件仍在测试阶段，请在有能力救砖的情况下刷入
+
 # Actions-OpenWrt
 
 编译自 https://github.com/padavanonly/immortalwrt-mt798x-6.6 兼容 Cudy Tr3000 128M 新 flash
