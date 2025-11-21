@@ -8,8 +8,8 @@ on:
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   WRT_TARGET: MTK-798x
-  WRT_REPO: https://github.com/weekdaycare/bl-mt798x_tr3000.git
-  WRT_BRANCH: 2k+64
+  WRT_REPO: https://github.com/weekdaycare/bl-mt798x-oss
+  WRT_BRANCH: fit-example
 
 permissions: write-all
 
