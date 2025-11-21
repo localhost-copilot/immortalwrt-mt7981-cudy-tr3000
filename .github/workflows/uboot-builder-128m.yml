@@ -1,8 +1,6 @@
 name: 798x-UBOOT
 
 on:
-  schedule:
-    - cron: 0 0 1 * *
   workflow_dispatch:
 
 env:
@@ -49,7 +47,7 @@ jobs:
       - name: 🛠️ Compile Firmware
         run: |
           cd ./wrt/
-          SOC=mt7981 BOARD=cudy_tr3000 MULTI_LAYOUT=1 ./build.sh
+          SOC=mt7981 BOARD=cudy_tr3000-v1 MULTI_LAYOUT=1 ./build.sh
 
       - name: 📦 Package Firmware
         run: |
