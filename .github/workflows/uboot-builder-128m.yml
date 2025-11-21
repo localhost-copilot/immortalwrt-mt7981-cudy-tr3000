@@ -87,7 +87,7 @@ jobs:
 
           ## 🚧 Notice
 
-          该固件为三分区 uboot ，支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 114MB
+          该固件为三分区 uboot ，支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 122MB
 
           ---
 
