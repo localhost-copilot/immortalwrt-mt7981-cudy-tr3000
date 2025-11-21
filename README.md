@@ -1,10 +1,29 @@
-**Chinese** | [教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
-
-> 本仓库编译的 uboot 与 ubootmod 固件仍在测试阶段，请在有能力救砖的情况下刷入
+**中文** | [教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
 
 # Actions-OpenWrt
 
+## immortalwrt 源码
+
 编译自 https://github.com/padavanonly/immortalwrt-mt798x-6.6 兼容 Cudy Tr3000 128M 新 flash
+
+## 大分区 ubootmod 固件
+
+默认 ubootmod 固件为 112M 分区，若你想编译 122M 分区固件，请将 `diy-part2.sh` 中的
+
+```sh
+# set ubi to 122M
+# sed -i 's/reg = <0x5c0000 0x7000000>;/reg = <0x5c0000 0x7a40000>;/' target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
+```
+
+取消注释
+
+## 三分区 uboot
+
+编译自 https://github.com/ZT229/bl-mt798x_tr3000 兼容新 flash 
+
+支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 122MB
+
+## USB 供电
 
 若你想关闭 USB 供电执行命令
 
@@ -18,7 +37,8 @@ echo 0 > /sys/class/gpio/modem_power/value
 echo 1 > /sys/class/gpio/modem_power/value
 ```
 
-集成第三方软件包:
+## 第三方软件包
+
 - [OpenClash](https://github.com/vernesong/OpenClash)
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
@@ -28,7 +48,7 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## Notice
 
-由于 Github 储存限制，若你想在固件中集成 sing-box 或者 xray-core 这种大型软件包，建议使用预编译文件，即在编译过程中加入已经编译好现成软件包，而非从源码构建。否则你应该会碰到超长编译时间 + 超出 Action 储存。
+由于 Github 储存限制，若你想在固件中集成 sing-box 或者 alist 这种大型软件包，建议使用预编译文件，即在编译过程中加入已经编译好现成软件包，而非从源码构建。否则你应该会碰到超长编译时间 + 超出 Action 储存。
 
 这里举个例子，在 diy-part2.sh 脚本中写入
 
@@ -57,6 +77,9 @@ rm sing-box.tar.gz
 
 ## Credits
 
+- [bl-mt798x-tr3000](https://github.com/ZT229/bl-mt798x_tr3000)
+- [immortalwrtwrt](https://github.com/padavanonly/immortalwrt-mt798x-6.6)
+- [P3TERX](https://github.com/P3TERX)
 - [Microsoft Azure](https://azure.microsoft.com)
 - [GitHub Actions](https://github.com/features/actions)
 - [OpenWrt](https://github.com/openwrt/openwrt)

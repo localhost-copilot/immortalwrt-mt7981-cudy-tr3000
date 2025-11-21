@@ -8,21 +8,14 @@ on:
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   WRT_TARGET: MTK-798x
-  WRT_REPO: https://github.com/weekdaycare/bl-mt798x-oss.git
-  WRT_BRANCH: fit-example
+  WRT_REPO: https://github.com/weekdaycare/bl-mt798x_tr3000.git
+  WRT_BRANCH: 2k+64
 
 permissions: write-all
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      #max-parallel: 4
-      matrix:
-        WRT_ATF: [atf-20240117-bacca82a8]
-        WRT_MTK: [uboot-mtk-20220606]
-
     steps:
       - name: Checkout Projects
         uses: actions/checkout@main
@@ -47,27 +40,16 @@ jobs:
 
       - name: ⚙️ Initialization Values
         run: |
-          echo "WRT_AUTHOR=$(echo $WRT_REPO | cut -d '/' -f 4)" >> $GITHUB_ENV
           echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")" >> $GITHUB_ENV
-          echo "WRT_VER=$(echo ${{matrix.WRT_ATF}} | grep -oP 'atf-\d+')_$(echo ${{matrix.WRT_MTK}} | grep -oP 'mtk-\d+')" >> $GITHUB_ENV
 
       - name: ⬇️ Clone Code
         run: |
           git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
 
-      - name: ⚙️ Compile Prepare
-        run: |
-          sed -i "4s/UBOOT_DIR=.*/UBOOT_DIR=${{matrix.WRT_MTK}}/" ./wrt/build.sh
-          sed -i "7s/ATF_DIR=.*/ATF_DIR=${{matrix.WRT_ATF}}/" ./wrt/build.sh
-
-          mkdir -p ./wrt
-          echo "SOC=mt7981 BOARD=cudy_tr3000-v1 ./build.sh" > ./wrt/Uboots.sh
-          chmod +x ./wrt/Uboots.sh
-
       - name: 🛠️ Compile Firmware
         run: |
           cd ./wrt/
-          ./Uboots.sh
+          SOC=mt7981 BOARD=cudy_tr3000 MULTI_LAYOUT=1 ./build.sh
 
       - name: 📦 Package Firmware
         run: |
@@ -76,11 +58,9 @@ jobs:
           for FILE in $(find ./output/ -type f -iname "*.*") ; do
             EXT=$(basename $FILE | cut -d '.' -f 2-)
             NAME=$(basename $FILE | cut -d '.' -f 1)
-            NEW_FILE="$NAME"_"$WRT_VER"_"$WRT_DATE"."$EXT"
+            NEW_FILE="$NAME"_"$WRT_DATE"."$EXT"
             mv -f $FILE ./upload/$NEW_FILE
           done
-
-          zip -r ./upload/"$WRT_AUTHOR"_"$WRT_VER"_"$WRT_DATE".zip ./upload/*.*
 
       - name: 📌 Generate release tag
         id: tag
@@ -89,8 +69,6 @@ jobs:
           BUILD_TIME=$(date +"%Y%m%d-%H%M")
           RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
-          ATF_VERSION=${{ matrix.WRT_ATF }}
-          MTK_VERSION=${{ matrix.WRT_MTK }}
 
           # 生成 release 信息
           cat > release.txt << EOF
@@ -99,8 +77,8 @@ jobs:
           **🏷️ Release:** $RELEASE_TAG
           **📦 Repo:** $WRT_REPO
           **🌿 Branch:** $WRT_BRANCH
-          **📱 ATF:** $ATF_VERSION
-          **📱 MTK:** $MTK_VERSION
+          **📱 ATF:** atf-20231013-0ea67d76a
+          **📱 MTK:** uboot-mtk-20220606
           **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
 
           ## 📥 Download
@@ -109,7 +87,7 @@ jobs:
 
           ## 🚧 Notice
 
-          该固件为 122M 分区 uboot ，请配合本仓库的 ubootmod 固件使用
+          该固件为三分区 uboot ，支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 114MB
 
           ---
 
