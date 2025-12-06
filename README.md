@@ -1,16 +1,16 @@
-**中文** | [教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html)
+**中文** | [定制教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html) | [刷写教程](https://xiabee.eu.org)
 
 <img src="tr3000.png" height=200px align="center">
 
 # Actions-OpenWrt
 
-基于 **GitHub Actions** 的 OpenWrt 固件自动编译项目，支持 Cudy TR3000 (128M 新 flash)。
+基于 **GitHub Actions** 专为 Cudy TR3000 自动编译 immortalwrt 固件项目，支持 SN 2544 新 flash 设备。
 
 ---
 
 ## immortalwrt 源码
 
-编译自 https://github.com/padavanonly/immortalwrt-mt798x-6.6 兼容 Cudy Tr3000 128M 新 flash
+编译自 https://github.com/padavanonly/immortalwrt-mt798x-6.6 ，兼容 Cudy Tr3000 128M 新 flash
 
 ---
 
@@ -54,10 +54,11 @@ echo 1 > /sys/class/gpio/modem_power/value
 - [OpenClash](https://github.com/vernesong/OpenClash)
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
+- [luci-app-aurora-config](https://github.com/eamonxg/luci-app-aurora-config)
 - luci-app-upnp
 - kmod-usb-net-cdc-ether
 - kmod-usb-net-rndis
-- kmod-mtd-rw(仅128M固件支持)
+- kmod-mtd-rw
 
 ---
 
