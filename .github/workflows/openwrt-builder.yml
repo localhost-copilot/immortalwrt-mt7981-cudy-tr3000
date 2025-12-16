@@ -23,6 +23,7 @@ on:
         default: false
 
 env:
+  DEVICE_INPUT: ${{ github.event.inputs.device || github.event.client_payload.device }}
   CCACHE_DIR: /workdir/.ccache
   CCACHE_MAXSIZE: 6G
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
@@ -58,8 +59,6 @@ jobs:
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: 🔧 Set device variables
-        env:
-          DEVICE_INPUT: ${{ github.event.inputs.device }}
         run: |
           case "$DEVICE_INPUT" in
             "256M") echo "CONFIG_FILE=config/256m.config" >> $GITHUB_ENV ;;
@@ -187,8 +186,6 @@ jobs:
           echo "✅ Source code cloned successfully"
 
       - name: 🔧 Set device variables
-        env:
-          DEVICE_INPUT: ${{ github.event.inputs.device }}
         run: |
           case "$DEVICE_INPUT" in
             "256M")
@@ -385,7 +382,7 @@ jobs:
         uses: Mattraks/delete-workflow-runs@v2
         with:
           retain_days: 0
-          keep_minimum_runs: 2
+          keep_minimum_runs: 9
 
       - name: 🗑️ Remove old releases
         uses: dev-drprasad/delete-older-releases@v0.3.4
