@@ -1,10 +1,8 @@
-**中文** | [定制教程](https://p3terx.com/archives/build-openwrt-with-github-actions.html) | [刷写教程](https://xiabee.eu.org)
+[定制教程](https://xiabee.eu.org/customize.html) | [刷写教程](https://xiabee.eu.org/install.html)
 
+<div align=center>
 <img src="tr3000.png" height=200px align="center">
-
-# Actions-OpenWrt
-
-基于 **GitHub Actions** 专为 Cudy TR3000 自动编译 immortalwrt 固件项目，支持 SN 2544 新 flash 设备。
+</div>
 
 ---
 
@@ -55,10 +53,17 @@ echo 1 > /sys/class/gpio/modem_power/value
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
 - [luci-app-aurora-config](https://github.com/eamonxg/luci-app-aurora-config)
+- luci-app-ttyd
 - luci-app-upnp
 - kmod-usb-net-cdc-ether
 - kmod-usb-net-rndis
 - kmod-mtd-rw
+
+---
+
+## SSH 连接 Action
+
+可以通过 ssh 连接到 Action 工作流来配置 `menuconfig` 。
 
 ---
 
