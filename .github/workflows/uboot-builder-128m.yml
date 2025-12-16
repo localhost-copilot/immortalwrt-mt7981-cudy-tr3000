@@ -75,7 +75,7 @@ jobs:
           **🏷️ Release:** $RELEASE_TAG
           **📦 Repo:** $WRT_REPO
           **🌿 Branch:** $WRT_BRANCH
-          **📱 ATF:** atf-20231013-0ea67d76a
+          **📱 ATF:** atf-20250711
           **📱 MTK:** uboot-mtk-20220606
           **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
 

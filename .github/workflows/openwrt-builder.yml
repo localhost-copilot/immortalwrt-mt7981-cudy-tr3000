@@ -5,6 +5,7 @@ permissions:
 
 on:
   repository_dispatch:
+    types: [ "Source Code Update" ]
   workflow_dispatch:
     inputs:
       device:
