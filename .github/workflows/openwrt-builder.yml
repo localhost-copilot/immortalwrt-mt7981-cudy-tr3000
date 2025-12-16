@@ -1,25 +1,26 @@
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-#
-# File: .github/workflows/openwrt-bulder.yml
-# Description: Build OpenWrt using GitHub Actions
-#
-# Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
+name: ImmortalWrt Builder
 
-name: OpenWrt Builder 256M
+permissions:
+  contents: write
 
 on:
   repository_dispatch:
   workflow_dispatch:
-
-# 防止多个构建同时运行
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    inputs:
+      device:
+        description: '编译设备型号'
+        required: true
+        type: choice
+        default: '256M'
+        options:
+          - '256M'
+          - '128M'
+          - '128M-Ubootmod'
+      ssh:
+        description: '是否执行 make menuconfig'
+        required: false
+        type: boolean
+        default: false
 
 env:
   CCACHE_DIR: /workdir/.ccache
@@ -27,7 +28,6 @@ env:
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: config/256m.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -36,14 +36,125 @@ env:
   TZ: Asia/Shanghai
 
 jobs:
-  build:
+  menuconfig:
+    name: ⚙️ Menuconfig & Push
+    if: github.event.inputs.ssh == 'true'
     runs-on: ubuntu-22.04
-
     steps:
       - name: 🙌 Checkout
         uses: actions/checkout@v4
 
-      - name: 🛠️ Initialization environment
+      - name: 🛠️ Init Environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libncurses-dev build-essential git wget python3 bzip2
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
+
+      - name: 🪜 Clone source code
+        working-directory: /workdir
+        run: |
+          git clone $REPO_URL -b $REPO_BRANCH --single-branch --filter=blob:none openwrt
+          ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
+      - name: 🔧 Set device variables
+        env:
+          DEVICE_INPUT: ${{ github.event.inputs.device }}
+        run: |
+          case "$DEVICE_INPUT" in
+            "256M") echo "CONFIG_FILE=config/256m.config" >> $GITHUB_ENV ;;
+            "128M") echo "CONFIG_FILE=config/128m.config" >> $GITHUB_ENV ;;
+            "128M-Ubootmod") echo "CONFIG_FILE=config/128muboot.config" >> $GITHUB_ENV ;;
+            *) echo "Unknown device: $DEVICE_INPUT" >&2; exit 1 ;;
+          esac
+
+      - name: 👩‍💻 Copy previous config if exists
+        run: |
+          if [ -f "$GITHUB_WORKSPACE/${CONFIG_FILE}" ]; then
+            echo "📁 Copying previous config to openwrt/.config"
+            cp -f "$GITHUB_WORKSPACE/${CONFIG_FILE}" /workdir/openwrt/.config
+          else
+            echo "⚠️ No previous config found at $GITHUB_WORKSPACE/${CONFIG_FILE}"
+          fi
+
+      - name: ⚙️ Load custom feeds
+        run: |
+          set -e
+          [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+          chmod +x $DIY_P1_SH
+          cd openwrt
+          $GITHUB_WORKSPACE/$DIY_P1_SH
+
+      - name: 🧬 Update feeds
+        run: cd openwrt && ./scripts/feeds update -a
+
+      - name: 🪛 Install feeds
+        run: cd openwrt && ./scripts/feeds install -a
+
+      - name: 🧩 Load custom configuration
+        run: |
+          set -e
+          [ -e files ] && mv files openwrt/files
+          [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+          chmod +x $DIY_P2_SH
+          cd openwrt
+          $GITHUB_WORKSPACE/$DIY_P2_SH
+
+      - name: ⌨️ SSH connection to Menuconfig
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+          
+      - name: 📤 Push config to main branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          SRC="/workdir/openwrt/.config"
+          DST="$GITHUB_WORKSPACE/${CONFIG_FILE}"
+
+          echo "Source: $SRC"
+          echo "Target: $DST"
+
+          if [ ! -f "$SRC" ]; then
+            echo "No .config found at $SRC. Nothing to do."
+            exit 0
+          fi
+
+          # 确保目标目录存在并拷贝  
+          mkdir -p "$(dirname "$DST")"   
+          cp -f "$SRC" "$DST"   
+          echo "Copied .config to $DST"   
+ 
+          cd "$GITHUB_WORKSPACE"   
+   
+          git config user.name "github-actions[bot]"   
+          git config user.email "github-actions[bot]@users.noreply.github.com"   
+ 
+          # 检查是否有变更  
+          git add "$CONFIG_FILE"   
+          if git diff --cached --quiet; then  
+            echo "No changes to commit."   
+            exit 0  
+          fi  
+ 
+          # 直接推送到主分支  
+          git commit -m "Update OpenWrt config: ${CONFIG_FILE}"   
+          git push origin HEAD:main
+
+  build:
+    name: 🔨 Build Firmware
+    needs: menuconfig
+    if: ${{ always() && (needs.menuconfig.result == 'success' || needs.menuconfig.result == 'skipped') }}
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: 🙌 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: 🛠️ Init Environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -74,6 +185,28 @@ jobs:
           git clone $REPO_URL -b $REPO_BRANCH --single-branch --filter=blob:none openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
           echo "✅ Source code cloned successfully"
+
+      - name: 🔧 Set device variables
+        env:
+          DEVICE_INPUT: ${{ github.event.inputs.device }}
+        run: |
+          case "$DEVICE_INPUT" in
+            "256M")
+              echo "CONFIG_FILE=config/256m.config" >> $GITHUB_ENV
+              echo "FIRMWARE_NAME=256M" >> $GITHUB_ENV
+              echo "DELETE_TAG_PATTERN=^256M-.*" >> $GITHUB_ENV
+              ;;
+            "128M")
+              echo "CONFIG_FILE=config/128m.config" >> $GITHUB_ENV
+              echo "FIRMWARE_NAME=128M" >> $GITHUB_ENV
+              echo "DELETE_TAG_PATTERN=^128M-.*" >> $GITHUB_ENV
+              ;;
+            "128M-Ubootmod")
+              echo "CONFIG_FILE=config/128muboot.config" >> $GITHUB_ENV
+              echo "FIRMWARE_NAME=128M_Ubootmod" >> $GITHUB_ENV
+              echo "DELETE_TAG_PATTERN=^128M_Ubootmod-.*" >> $GITHUB_ENV
+              ;;
+          esac
 
       - name: ⚙️ Load custom feeds
         run: |
@@ -214,14 +347,12 @@ jobs:
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
-          FIRMWARE_NAME="256M"
           BUILD_TIME=$(date +"%Y%m%d-%H%M")
           RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
-          # 生成 release 信息
           cat > release.txt << EOF
-          ## 📦 OpenWrt Firmware Release
+          ## 📦 ImmortalWrt Firmware Release
 
           **🏷️ Release:** $RELEASE_TAG
           **🌿 Branch:** $REPO_BRANCH
@@ -262,6 +393,6 @@ jobs:
         with:
           keep_latest: 3
           delete_tags: true
-          delete_tag_pattern: "^256M-.*$"
+          delete_tag_pattern: ${{ env.DELETE_TAG_PATTERN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
