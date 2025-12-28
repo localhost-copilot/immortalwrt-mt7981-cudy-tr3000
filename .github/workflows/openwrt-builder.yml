@@ -17,6 +17,11 @@ on:
           - '256M'
           - '128M'
           - '128M-Ubootmod'
+      commit:
+        description: '指定源码commit进行编译，留空拉取最新源码'
+        required: false
+        type: string
+        default: ''
       ssh:
         description: '是否执行 make menuconfig'
         required: false
@@ -29,6 +34,7 @@ env:
   CCACHE_MAXSIZE: 6G
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
+  REPO_COMMIT: ${{ github.event.inputs.commit || '' }}
   FEEDS_CONF: feeds.conf.default
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
@@ -183,6 +189,17 @@ jobs:
         run: |
           echo "📥 Cloning $REPO_URL (branch: $REPO_BRANCH)"
           git clone $REPO_URL -b $REPO_BRANCH --single-branch --filter=blob:none openwrt
+          cd openwrt
+
+          if [ -n "${REPO_COMMIT}" ]; then
+            echo "🔀 Checking out specified commit $COMMIT_SHA"
+            git fetch origin $COMMIT_SHA
+            git checkout $COMMIT_SHA
+          else
+            echo "🆕 Using latest commit on branch $REPO_BRANCH"
+            git checkout $REPO_BRANCH
+          fi
+
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
           echo "✅ Source code cloned successfully"
 
