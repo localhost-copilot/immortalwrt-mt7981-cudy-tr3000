@@ -192,9 +192,9 @@ jobs:
           cd openwrt
 
           if [ -n "${REPO_COMMIT}" ]; then
-            echo "🔀 Checking out specified commit $COMMIT_SHA"
-            git fetch origin $COMMIT_SHA
-            git checkout $COMMIT_SHA
+            echo "🔀 Checking out specified commit $REPO_COMMIT"
+            git fetch origin $REPO_COMMIT
+            git checkout $REPO_COMMIT
           else
             echo "🆕 Using latest commit on branch $REPO_BRANCH"
             git checkout $REPO_BRANCH
