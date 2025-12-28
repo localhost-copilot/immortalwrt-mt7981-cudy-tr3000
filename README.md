@@ -33,6 +33,8 @@
 
 ## USB 供电控制
 
+上游的最新源码已经打开了默认供电，具体可以见这条 [commit](https://github.com/padavanonly/immortalwrt-mt798x-6.6/commit/86356f8a2f796e5808fda25ce3e3bf6b3cc3278e)
+
 若你想关闭 USB 供电执行命令
 
 ```bash
