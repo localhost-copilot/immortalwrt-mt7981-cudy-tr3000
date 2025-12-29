@@ -23,9 +23,9 @@
 
 ---
 
-## 三分区 uboot
+## DHCP 三分区 uboot
 
-编译自 https://github.com/hanwckf/bl-mt798x 兼容新 flash
+编译自 https://github.com/weekdaycare/bl-mt798x-dhcpd 感谢大佬开源，兼容新 flash
 
 支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 122MB
 
@@ -100,6 +100,7 @@ rm sing-box.tar.gz
 
 ## Credits
 
+- [bl-mt798x-dhcpd](https://github.com/weekdaycare/bl-mt798x-dhcpd)
 - [bl-mt798x](https://github.com/hanwckf/bl-mt798x)
 - [bl-mt798x](https://github.com/sos801107/bl-mt798x-oss)
 - [immortalwrtwrt](https://github.com/padavanonly/immortalwrt-mt798x-6.6)
