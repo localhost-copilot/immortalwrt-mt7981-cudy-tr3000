@@ -2,12 +2,19 @@ name: 798x-UBOOT
 
 on:
   workflow_dispatch:
+    inputs:
+      prerelease:
+        description: '是否发布为预发布版本 (Pre-release)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   WRT_TARGET: MTK-798x
   WRT_REPO: https://github.com/weekdaycare/bl-mt798x-dhcpd
   WRT_BRANCH: master
+  PRERELEASE: ${{ github.event.inputs.prerelease }}
 
 permissions: write-all
 
@@ -102,4 +109,5 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
+          prerelease: ${{ env.PRERELEASE == 'true' }}
           files: ./wrt/upload/*.bin

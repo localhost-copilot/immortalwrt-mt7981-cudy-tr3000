@@ -27,6 +27,11 @@ on:
         required: false
         type: boolean
         default: false
+      prerelease:
+        description: '是否发布为预发布版本 (Pre-release)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   DEVICE_INPUT: ${{ github.event.inputs.device || github.event.client_payload.device }}
@@ -34,13 +39,14 @@ env:
   CCACHE_MAXSIZE: 2G
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
-  REPO_COMMIT: ${{ github.event.inputs.commit || '' }}
+  REPO_COMMIT: ${{ github.event.inputs.commit }}
   FEEDS_CONF: feeds.conf.default
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
+  PRERELEASE: ${{ github.event.inputs.prerelease }}
   TZ: Asia/Shanghai
 
 jobs:
@@ -406,6 +412,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
+          prerelease: ${{ env.PRERELEASE == 'true' }}
           files: ${{ env.FIRMWARE }}/*sysupgrade.bin
 
       - name: 🚧 Delete old workflow runs
