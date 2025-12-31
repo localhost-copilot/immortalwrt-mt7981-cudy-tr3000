@@ -31,7 +31,7 @@ on:
 env:
   DEVICE_INPUT: ${{ github.event.inputs.device || github.event.client_payload.device }}
   CCACHE_DIR: /workdir/.ccache
-  CCACHE_MAXSIZE: 6G
+  CCACHE_MAXSIZE: 2G
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
   REPO_BRANCH: openwrt-24.10-6.6
   REPO_COMMIT: ${{ github.event.inputs.commit || '' }}
@@ -160,14 +160,21 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: 🪠 Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - name: 🛠️ Init Environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          echo "🔧 Cleaning up disk space..."
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-
           echo "📦 Installing dependencies..."
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
@@ -187,17 +194,22 @@ jobs:
       - name: 🪜 Clone source code
         working-directory: /workdir
         run: |
-          echo "📥 Cloning $REPO_URL (branch: $REPO_BRANCH)"
-          git clone $REPO_URL -b $REPO_BRANCH --single-branch --filter=blob:none openwrt
-          cd openwrt
+          set -e
+          echo "📥 Initializing repository..."
+          mkdir openwrt && cd openwrt
+          git init
+          git remote add origin $REPO_URL
 
           if [ -n "${REPO_COMMIT}" ]; then
-            echo "🔀 Checking out specified commit $REPO_COMMIT"
-            git fetch origin $REPO_COMMIT
-            git checkout $REPO_COMMIT
+            echo "🔀 Fetching specified commit: ${REPO_COMMIT}"
+            # 直接抓取特定 commit，深度为 1
+            git fetch --depth 1 origin "${REPO_COMMIT}"
+            git checkout FETCH_HEAD
           else
-            echo "🆕 Using latest commit on branch $REPO_BRANCH"
-            git checkout $REPO_BRANCH
+            echo "🆕 Fetching latest commit on branch: ${REPO_BRANCH}"
+            # 直接抓取特定分支，深度为 1
+            git fetch --depth 1 origin "${REPO_BRANCH}"
+            git checkout FETCH_HEAD
           fi
 
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt

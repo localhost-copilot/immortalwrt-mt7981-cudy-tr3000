@@ -7,7 +7,7 @@ env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   WRT_TARGET: MTK-798x
   WRT_REPO: https://github.com/weekdaycare/bl-mt798x-dhcpd
-  WRT_BRANCH: main
+  WRT_BRANCH: master
 
 permissions: write-all
 
