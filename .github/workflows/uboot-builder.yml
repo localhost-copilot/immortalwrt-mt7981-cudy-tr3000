@@ -8,19 +8,6 @@ on:
         required: false
         type: boolean
         default: false
-      device_size:
-        description: '设备型号: 128 或 256 (MB)'
-        required: true
-        type: choice
-        default: '256M'
-        options:
-          - '128M'
-          - '256M'
-      multi_layout:
-        description: '是否编译多分区版本 (Multi-layout)'
-        required: false
-        type: boolean
-        default: false
       branch:
         description: '选择分支进行编译'
         required: false
@@ -29,7 +16,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-  WRT_TARGET: MTK-798x
   WRT_REPO: https://github.com/weekdaycare/bl-mt798x-dhcpd
   WRT_BRANCH: ${{ github.event.inputs.branch }}
   PRERELEASE: ${{ github.event.inputs.prerelease }}
@@ -61,13 +47,6 @@ jobs:
           sudo chown $USER:$USER /mnt/build_wrt
           sudo ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
 
-      - name: ⚙️ Initialization Values
-        run: |
-          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")" >> $GITHUB_ENV
-          # Set device and multi-layout from workflow inputs
-          echo "WRT_DEVICE=${{ github.event.inputs.device_size }}" >> $GITHUB_ENV
-          if [ "${{ github.event.inputs.multi_layout }}" = "true" ]; then echo "WRT_MULTI=1" >> $GITHUB_ENV; else echo "WRT_MULTI=0" >> $GITHUB_ENV; fi
-
       - name: ⬇️ Clone Code
         run: |
           git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
@@ -75,15 +54,14 @@ jobs:
       - name: 🛠️ Compile Firmware
         run: |
           cd ./wrt/
-          # Choose board based on selected device size
-          if [ "${WRT_DEVICE}" = "256M" ]; then BOARD=cudy_tr3000-v1-256mb; else BOARD=cudy_tr3000-v1; fi
-          # MULTI_LAYOUT is set to 1 when multi-layout selected, otherwise 0
-          SOC=mt7981 BOARD=$BOARD VERSION=2025 MULTI_LAYOUT=$WRT_MULTI ./build.sh
+          SOC=mt7981 BOARD=cudy_tr3000-v1-256mb VERSION=2025 MULTI_LAYOUT=0 ./build.sh
+          SOC=mt7981 BOARD=cudy_tr3000-v1 VERSION=2025 MULTI_LAYOUT=1 ./build.sh
 
       - name: 📦 Package Firmware
         run: |
           cd ./wrt/ && mkdir ./upload/
 
+          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")" >> $GITHUB_ENV
           for FILE in $(find ./output/ -type f -iname "*.*") ; do
             EXT=$(basename $FILE | cut -d '.' -f 2-)
             NAME=$(basename $FILE | cut -d '.' -f 1)
@@ -94,12 +72,8 @@ jobs:
       - name: 📌 Generate release tag
         id: tag
         run: |
-          DEVICE="${{ github.event.inputs.device_size }}"
-          MULTI_LAYOUT_FLAG="${{ github.event.inputs.multi_layout }}"
-          if [ "$MULTI_LAYOUT_FLAG" = "true" ]; then ML_FLAG="Yes"; ML_SHORT="multi"; else ML_FLAG="No"; ML_SHORT="single"; fi
-          FIRMWARE_NAME="uboot-${WRT_DEVICE}-${ML_SHORT}"
           BUILD_TIME=$(date +"%Y%m%d-%H%M")
-          RELEASE_TAG="${FIRMWARE_NAME}-${BUILD_TIME}"
+          RELEASE_TAG="Uboot-${BUILD_TIME}"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
           # 生成 release 信息
@@ -111,9 +85,8 @@ jobs:
           **🌿 Branch:** $WRT_BRANCH
           **📱 ATF:** atf-20250711
           **📱 MTK:** uboot-mtk-20250711
-          **📱 Device:** $DEVICE_NAME
-          **🔀 Multi-layout:** $ML_FLAG
-          **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
+          **📱 Device:** cudy_tr3000 128M/256M
+          **📅 Build Date:** $BUILD_TIME
 
           ## 📥 Download
 
@@ -140,3 +113,9 @@ jobs:
           body_path: release.txt
           prerelease: ${{ env.PRERELEASE == 'true' }}
           files: ./wrt/upload/*.bin
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          retain_days: 0
+          keep_minimum_runs: 5
