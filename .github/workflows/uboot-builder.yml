@@ -59,14 +59,17 @@ jobs:
 
       - name: 📦 Package Firmware
         run: |
-          cd ./wrt/ && mkdir ./upload/
+          cd ./wrt/ && mkdir -p ./upload/
 
-          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")" >> $GITHUB_ENV
-          for FILE in $(find ./output/ -type f -iname "*.*") ; do
-            EXT=$(basename $FILE | cut -d '.' -f 2-)
-            NAME=$(basename $FILE | cut -d '.' -f 1)
-            NEW_FILE="$NAME"_"$WRT_DATE"."$EXT"
-            mv -f $FILE ./upload/$NEW_FILE
+          WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d")
+          echo "WRT_DATE=$WRT_DATE" >> $GITHUB_ENV
+
+          for FILE in $(find ./output/ -type f -iname "*.*"); do
+            BASENAME=$(basename "$FILE")
+            NAME="${BASENAME%.*}"
+            EXT="${BASENAME##*.}"
+            NEW_FILE="${NAME}_${WRT_DATE}.${EXT}"
+            mv -f "$FILE" "./upload/$NEW_FILE"
           done
 
       - name: 📌 Generate release tag
