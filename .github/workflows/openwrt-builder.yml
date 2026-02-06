@@ -18,6 +18,11 @@ on:
           - '128M'
           - '128M-Ubootmod'
           - 'all' 
+      repo:
+        description: '指定源码仓库地址'
+        required: true
+        type: string
+        default: 'https://github.com/padavanonly/immortalwrt-mt798x-6.6'
       commit:
         description: '指定源码commit进行编译，留空拉取最新源码'
         required: false
@@ -38,7 +43,7 @@ env:
   DEVICE_INPUT: ${{ github.event.inputs.device || github.event.client_payload.device }}
   CCACHE_DIR: /workdir/.ccache
   CCACHE_MAXSIZE: 2G
-  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6
+  REPO_URL: ${{ github.event.inputs.repo }}
   REPO_BRANCH: openwrt-24.10-6.6
   REPO_COMMIT: ${{ github.event.inputs.commit }}
   FEEDS_CONF: feeds.conf.default
@@ -180,6 +185,8 @@ jobs:
           $GITHUB_WORKSPACE/$DIY_P1_SH
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+          chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
+          $GITHUB_WORKSPACE/$DIY_P2_SH
 
       - name: 🔨 Multi-Device Compilation Loop
         id: compile
@@ -209,9 +216,6 @@ jobs:
             
             # 3. 加载配置
             cp -f $GITHUB_WORKSPACE/$CONFIG .config
-            # 执行 DIY 脚本处理
-            chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
-            $GITHUB_WORKSPACE/$DIY_P2_SH
             
             # 4. 刷新配置并下载
             make defconfig
