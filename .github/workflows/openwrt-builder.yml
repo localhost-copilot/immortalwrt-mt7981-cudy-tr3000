@@ -233,20 +233,14 @@ jobs:
               make -j1 V=s || exit 1
             fi
 
-            # 6. 收集产物
-            # 直接寻找所有 bin 文件并复制
-            echo "📥 Collecting artifacts for $DEV..."
-            find bin/targets/ -name "*sysupgrade.bin" -exec cp {} $GITHUB_WORKSPACE/firmware_collection/ \;
-
-            # 8. 定向清理
-            echo "🧹 Partial cleaning to save disk space while keeping toolchain..."
-            rm -rf ./build_dir/target-* 
-            rm -rf ./bin/targets/*
-            
             echo "✅ $DEV build finished."
             df -hT /workdir
             echo "::endgroup::"
           done
+
+          echo "📥 Collecting artifacts"
+          find bin/targets/ -name "*sysupgrade.bin" -exec cp {} $GITHUB_WORKSPACE/firmware_collection/ \;
+
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: 🪄 Upload Binaries (Artifacts)
