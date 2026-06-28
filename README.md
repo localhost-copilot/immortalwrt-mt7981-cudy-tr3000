@@ -31,10 +31,6 @@
 
 128M uboot 为三分区 uboot 支持原厂 ubi 大小 64MB，扩容 ubi 分区 112MB，最大 ubi 分区 122MB
 
-256M uboot 为单分区 uboot
-
----
-
 ## USB 供电控制
 
 上游的最新源码已经打开了默认供电，具体可以见这条 [commit](https://github.com/padavanonly/immortalwrt-mt798x-6.6/commit/86356f8a2f796e5808fda25ce3e3bf6b3cc3278e)
@@ -62,6 +58,15 @@ echo 1 > /sys/class/gpio/modem_power/value
 - luci-app-ttyd
 - luci-app-upnp
 - kmod-usb-net-cdc-ether
+- kmod-usb-net-cdc-mbim
+- kmod-usb-net-cdc-ncm
+- kmod-usb-net-qmi-wwan
+- kmod-usb-serial-option
+- luci-proto-mbim
+- luci-proto-ncm
+- luci-proto-qmi
+- uqmi
+- umbim
 - kmod-usb-net-rndis
 - kmod-mtd-rw
 
