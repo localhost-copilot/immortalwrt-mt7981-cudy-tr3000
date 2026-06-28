@@ -81,6 +81,7 @@ rm -rf \
   package/luci-app-aurora-config \
   package/luci-app-bandix \
   package/openwrt-bandix \
+  package/vohive \
   package/luci-compat-keep
 
 if [ -e "$GITHUB_WORKSPACE/$FEEDS_CONF" ]; then

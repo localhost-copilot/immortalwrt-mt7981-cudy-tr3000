@@ -21,6 +21,12 @@ scripts, then collect firmware artifacts back into this workspace.
   `.build/openwrt-workdir`
 - Artifact output directory:
   `firmware_collection/`
+- VoHive integration:
+  `diy-part1.sh` clones `https://github.com/Demogorgon314/luci-app-vohive`
+  into `package/vohive`, and configs select `CONFIG_PACKAGE_luci-app-vohive=y`.
+  Do not select `vohive-core-arm64` unless a real `vohive-core/files/vohive`
+  binary is provided; the upstream repo intentionally keeps the LuCI app and
+  core binary package separate.
 
 The successful 112M build produced:
 
