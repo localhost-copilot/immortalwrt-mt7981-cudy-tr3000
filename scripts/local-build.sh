@@ -165,7 +165,7 @@ firmware_filename() {
   esac
 
   if [ -n "$dts" ] && [ -f "$dts" ]; then
-    ubi_size="$(sed -n 's/.*model = ".*ubi \([0-9][0-9]*[Mm]\)".*/\1/p' "$dts" | head -n 1 | tr '[:upper:]' '[:lower:]')"
+    ubi_size="$(sed -n "s/.*model = \".*ubi \([0-9][0-9]*[Mm]\)\".*/\1/p" "$dts" | head -n 1 | tr "[:upper:]" "[:lower:]")"
   fi
 
   if [ -n "$ubi_size" ]; then
