@@ -243,7 +243,32 @@ jobs:
           done
 
           echo "📥 Collecting artifacts"
-          find bin/targets/ -name "*sysupgrade.bin" -exec cp {} $GITHUB_WORKSPACE/firmware_collection/ \;
+          firmware_filename() {
+            local filename="$1"
+            local dts=""
+            local ubi_size=""
+
+            case "$filename" in
+              *cudy_tr3000-v1-ubootmod-squashfs-sysupgrade.bin)
+                dts="target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts"
+                ;;
+            esac
+
+            if [ -n "$dts" ] && [ -f "$dts" ]; then
+              ubi_size="$(sed -n 's/.*model = ".*ubi \([0-9][0-9]*[Mm]\)".*/\1/p' "$dts" | head -n 1 | tr '[:upper:]' '[:lower:]')"
+            fi
+
+            if [ -n "$ubi_size" ]; then
+              filename="${filename/-squashfs-/-ubi${ubi_size}-squashfs-}"
+            fi
+
+            printf "%s\n" "$filename"
+          }
+
+          find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" artifact; do
+            filename="$(firmware_filename "$(basename "$artifact")")"
+            cp "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
+          done
 
           echo "status=success" >> $GITHUB_OUTPUT
 

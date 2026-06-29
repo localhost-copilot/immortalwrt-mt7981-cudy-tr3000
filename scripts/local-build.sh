@@ -93,6 +93,22 @@ find build_dir/ -type f \( \
   -path "*/root-*/www/luci-static/custom/demogorgon314-badge.js" \
 \) -delete 2>/dev/null || true
 
+find build_dir/ -maxdepth 2 -type d \( \
+  -name "luci-app-vohive-*" -o \
+  -name "vohive-core-*" \
+\) -exec rm -rf {} + 2>/dev/null || true
+
+find bin/packages/ -type f \( \
+  -name "luci-app-vohive_*.ipk" -o \
+  -name "vohive-core-*.ipk" \
+\) -delete 2>/dev/null || true
+
+find build_dir/ -type f \( \
+  -path "*/root-*/usr/lib/opkg/info/luci-app-vohive.*" -o \
+  -path "*/root-*/usr/share/vohive/*" -o \
+  -path "*/root-*/www/luci-static/resources/view/vohive/*" \
+\) -delete 2>/dev/null || true
+
 if [ -e "$GITHUB_WORKSPACE/$FEEDS_CONF" ]; then
   cp -f "$GITHUB_WORKSPACE/$FEEDS_CONF" feeds.conf.default
 fi
@@ -137,6 +153,31 @@ for DEV in $DEVICES; do
 done
 
 rm -f "$GITHUB_WORKSPACE/firmware_collection"/*.bin
-find bin/targets/ -name "*sysupgrade.bin" -exec cp -f {} "$GITHUB_WORKSPACE/firmware_collection/" \;
+firmware_filename() {
+  local filename="$1"
+  local dts=""
+  local ubi_size=""
+
+  case "$filename" in
+    *cudy_tr3000-v1-ubootmod-squashfs-sysupgrade.bin)
+      dts="target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts"
+      ;;
+  esac
+
+  if [ -n "$dts" ] && [ -f "$dts" ]; then
+    ubi_size="$(sed -n 's/.*model = ".*ubi \([0-9][0-9]*[Mm]\)".*/\1/p' "$dts" | head -n 1 | tr '[:upper:]' '[:lower:]')"
+  fi
+
+  if [ -n "$ubi_size" ]; then
+    filename="${filename/-squashfs-/-ubi${ubi_size}-squashfs-}"
+  fi
+
+  printf "%s\n" "$filename"
+}
+
+find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" artifact; do
+  filename="$(firmware_filename "$(basename "$artifact")")"
+  cp -f "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
+done
 ccache -s
 '
