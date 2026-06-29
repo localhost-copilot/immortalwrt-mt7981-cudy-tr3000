@@ -84,6 +84,15 @@ rm -rf \
   package/vohive \
   package/luci-compat-keep
 
+rm -f \
+  files/etc/uci-defaults/93-demogorgon314-badge \
+  files/www/luci-static/custom/demogorgon314-badge.js
+
+find build_dir/ -type f \( \
+  -path "*/root-*/etc/uci-defaults/93-demogorgon314-badge" -o \
+  -path "*/root-*/www/luci-static/custom/demogorgon314-badge.js" \
+\) -delete 2>/dev/null || true
+
 if [ -e "$GITHUB_WORKSPACE/$FEEDS_CONF" ]; then
   cp -f "$GITHUB_WORKSPACE/$FEEDS_CONF" feeds.conf.default
 fi
