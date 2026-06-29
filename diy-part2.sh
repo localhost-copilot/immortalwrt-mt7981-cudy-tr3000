@@ -26,6 +26,12 @@ sed -i 's/ci-llvm=true/ci-llvm=false/g' feeds/packages/lang/rust/Makefile
 sed -i -e '/^IMG_PREFIX:=/i BUILD_DATE := $(shell date +%Y%m%d)' \
        -e '/^IMG_PREFIX:=/ s/\($(SUBTARGET)\)/\1-$(BUILD_DATE)/' include/image.mk
 
+# Add a firmware link below the overview firmware version.
+STATUS_SYSTEM_JS="feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
+if [ -f "$STATUS_SYSTEM_JS" ]; then
+  sed -i "s#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),\\n\\t\\t\\t'固件地址', E('a', { href: 'https://github.com/Demogorgon314/immortalwrt-mt7981-cudy-tr3000/releases', target: '_blank', rel: 'noopener noreferrer' }, [ 'https://github.com/Demogorgon314/immortalwrt-mt7981-cudy-tr3000/releases' ]),#" "$STATUS_SYSTEM_JS"
+fi
+
 # set ubi to 122M
 # sed -i 's/reg = <0x5c0000 0x7000000>;/reg = <0x5c0000 0x7a40000>;/' target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
 
