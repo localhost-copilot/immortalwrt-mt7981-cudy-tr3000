@@ -106,6 +106,13 @@ case "$DEVICE_INPUT" in
   *) echo "Unknown DEVICE_INPUT: $DEVICE_INPUT" >&2; exit 2 ;;
 esac
 
+find bin/targets/ -type f \( \
+  -name "*factory.bin" -o \
+  -name "*initramfs*" -o \
+  -name "*sysupgrade.bin" -o \
+  -name "*.manifest" \
+\) -delete 2>/dev/null || true
+
 for DEV in $DEVICES; do
   case "$DEV" in
     "128M") CONFIG="config/128m.config" ;;
