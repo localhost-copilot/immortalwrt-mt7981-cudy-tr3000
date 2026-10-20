@@ -24,7 +24,7 @@ scripts, then collect firmware artifacts back into this workspace.
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
 - OpenClash and the old `luci-app-wg-reality` are no longer included.
-  Use private PassWall2 26.10.20-r4 at add8da27e55f78d38d507dfaeb54279840096516
+  Use private PassWall2 26.10.20-r5 at ac3c9850bd6ee33972f84d1bb71226c50d5f399c
   with the SHA-256 pinned official ARM64 Xray 26.10.17 prerelease.
   `scripts/prepare-passwall2.sh` also pins the PassWall dependency feed.
   `scripts/prepare-passwall2-golang.sh` pins the compatible Go tooling;
