@@ -11,6 +11,14 @@
 #
 
 # Modify default IP
+# This upstream snapshot stores the ifdown symlink as a literal "ifup" file.
+# Restore it so netifd and the tunnel service can actually stop interfaces.
+ifdown_path=package/network/config/netifd/files/sbin/ifdown
+if [ ! -L "$ifdown_path" ] && [ "$(cat "$ifdown_path")" = ifup ]; then
+  rm "$ifdown_path"
+  ln -s ifup "$ifdown_path"
+fi
+
 #sed -i 's/192.168.1.1/192.168.50.5/g' package/base-files/files/bin/config_generate
 
 # Modify default theme

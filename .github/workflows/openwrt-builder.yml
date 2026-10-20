@@ -225,12 +225,19 @@ jobs:
             esac
             
             echo "Using Config: $CONFIG"
+            if [ "$DEV" = "128M-Ubootmod" ]; then
+              grep -Eq '^[[:space:]]*reg = <0x5c0000 0x7000000>;' target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
+              grep -Fq 'model = "Cudy TR3000 v1 ubi 112M";' target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
+            fi
+            test "$(readlink package/network/config/netifd/files/sbin/ifdown)" = ifup
             
             # 3. 加载配置
             cp -f $GITHUB_WORKSPACE/$CONFIG .config
             
             # 4. 刷新配置并下载
             make defconfig
+            grep -q '^CONFIG_PACKAGE_luci-app-wg-reality=y$' .config
+            grep -q '^CONFIG_PACKAGE_xray-core=y$' .config
             make download -j$(nproc)
             
             # 5. 开始编译
@@ -272,6 +279,10 @@ jobs:
             filename="$(firmware_filename "$(basename "$artifact")")"
             cp "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
           done
+          find bin/targets/ -name '*.manifest' -exec cp '{}' "$GITHUB_WORKSPACE/firmware_collection/" \;
+          grep -q '^luci-app-wg-reality - 0.1.0-r4$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          grep -q '^xray-core - 26.3.27-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 
           echo "status=success" >> $GITHUB_OUTPUT
 
@@ -318,9 +329,3 @@ jobs:
           body_path: release.txt
           prerelease: ${{ env.PRERELEASE == 'true' }}
           files: ${{ github.workspace }}/firmware_collection/*
-
-      - name: 🚧 Delete old workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          retain_days: 0
-          keep_minimum_runs: 9

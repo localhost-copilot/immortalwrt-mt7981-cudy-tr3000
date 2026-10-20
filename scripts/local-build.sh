@@ -83,6 +83,7 @@ rm -rf \
   package/openwrt-bandix \
   package/vohive \
   package/luci-compat-keep
+rm -rf package/luci-app-wg-reality package/xray-core
 
 rm -f \
   files/etc/uci-defaults/93-demogorgon314-badge \
@@ -146,7 +147,14 @@ for DEV in $DEVICES; do
   esac
 
   cp -f "$GITHUB_WORKSPACE/$CONFIG" .config
+  if [ "$DEV" = "128M-Ubootmod" ]; then
+    grep -Fq "reg = <0x5c0000 0x7000000>;" target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
+    grep -Fq "Cudy TR3000 v1 ubi 112M" target/linux/mediatek/dts/mt7981b-cudy-tr3000-v1-ubootmod.dts
+  fi
+  test "$(readlink package/network/config/netifd/files/sbin/ifdown)" = ifup
   make defconfig
+  grep -qx "CONFIG_PACKAGE_luci-app-wg-reality=y" .config
+  grep -qx "CONFIG_PACKAGE_xray-core=y" .config
   make download -j"$(nproc)"
   if ! make -j"$(nproc)" CC="ccache gcc" CXX="ccache g++"; then
     make -j1 V=s
@@ -180,5 +188,9 @@ find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" art
   filename="$(firmware_filename "$(basename "$artifact")")"
   cp -f "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
 done
+find bin/targets/ -name "*.manifest" -exec cp {} "$GITHUB_WORKSPACE/firmware_collection/" \;
+grep -qx "luci-app-wg-reality - 0.1.0-r4" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+grep -qx "xray-core - 26.3.27-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+(cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 ccache -s
 '

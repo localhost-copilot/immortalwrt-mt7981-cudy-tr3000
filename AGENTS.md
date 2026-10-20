@@ -23,6 +23,14 @@ scripts, then collect firmware artifacts back into this workspace.
   `firmware_collection/`
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
+- OpenClash is no longer included. The dedicated tunnel uses
+  `luci-app-wg-reality` v0.1.0 and the SHA-256 pinned official ARM64 Xray
+  26.3.27 package from that repository. Older feed Xray 25.2.21 failed
+  Reality authentication with the tested connection.
+- `diy-part2.sh` repairs the upstream literal `ifup` file at
+  `package/network/config/netifd/files/sbin/ifdown` into the intended symlink.
+- Preserve `/etc/wg-reality/` during upgrades; the plugin installs a
+  `/lib/upgrade/keep.d/wg-reality` entry for its private profile and backups.
 
 The successful 112M build produced:
 

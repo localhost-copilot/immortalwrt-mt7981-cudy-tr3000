@@ -51,6 +51,8 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## 第三方软件包
 
+- [WireGuard Reality 管理插件 v0.1.0](https://github.com/Demogorgon314/luci-app-wg-reality)：内置 WireGuard 工具及固定校验和的官方 Xray 26.3.27 ARM64 核心。默认断网保护，未导入连接前客户端无法访问外网；管理页和 SSH 通过 LAN 使用。
+- 固件不再包含 OpenClash / VoHive。保留配置升级会保留 `/etc/wg-reality/` 中的连接资料；刷机前仍需导出备份。
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
 - [luci-app-aurora-config](https://github.com/eamonxg/luci-app-aurora-config)
