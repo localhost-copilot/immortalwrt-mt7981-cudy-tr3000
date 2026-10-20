@@ -93,6 +93,7 @@ find build_dir/ -type f \( \
   -path "*/root-*/www/luci-static/custom/demogorgon314-badge.js" \
 \) -delete 2>/dev/null || true
 
+# Remove VoHive artifacts from older builds to keep them out of new firmware.
 find build_dir/ -maxdepth 2 -type d \( \
   -name "luci-app-vohive-*" -o \
   -name "vohive-core-*" \
