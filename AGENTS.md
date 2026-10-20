@@ -23,17 +23,21 @@ scripts, then collect firmware artifacts back into this workspace.
   `firmware_collection/`
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
-- OpenClash is no longer included. The dedicated tunnel uses
-  `luci-app-wg-reality` v0.1.0 and the SHA-256 pinned official ARM64 Xray
-  26.3.27 package from that repository. Older feed Xray 25.2.21 failed
-  Reality authentication with the tested connection.
+- OpenClash and the old `luci-app-wg-reality` are no longer included.
+  Use private PassWall2 26.10.20-r3 at c281ed587fef350d898a84f45ac71d56e6d40e8d
+  with the SHA-256 pinned official ARM64 Xray 26.10.17 prerelease.
+  `scripts/prepare-passwall2.sh` also pins the PassWall dependency feed.
+  `scripts/prepare-passwall2-golang.sh` pins the compatible Go tooling;
+  geoview 0.2.8 cannot build with the original Go 1.23 feed.
 - `diy-part2.sh` repairs the upstream literal `ifup` file at
   `package/network/config/netifd/files/sbin/ifdown` into the intended symlink.
-- Preserve `/etc/wg-reality/` during upgrades; the plugin installs a
-  `/lib/upgrade/keep.d/wg-reality` entry for its private profile and backups.
-- The tunnel repository is private. Actions checks out its pinned tag using
-  the `WG_REALITY_DEPLOY_KEY` secret, a read-only deploy key on that repository.
-  `WG_REALITY_SOURCE` lets `diy-part1.sh` clone this authenticated local checkout.
+- Preserve `/etc/config/passwall2`, `/etc/passwall2/`, and old
+  `/etc/wg-reality/` backups during upgrades. The dedicated UCI default enables
+  the new guard before retiring old includes and switches Xray to /usr/bin/xray.
+- The PassWall2 repository is private. Actions checks out its pinned commit using
+  the `PASSWALL2_DEPLOY_KEY` secret, a read-only deploy key on that repository.
+  `PASSWALL2_SOURCE` identifies the authenticated local checkout; local Docker
+  builds mount it read-only without passing credentials.
   Do not replace it with a broad personal token or change repository visibility.
 
 The successful 112M build produced:
@@ -44,6 +48,15 @@ sha256: 1f77be0309a6c70969f6a5d490bc4f426745b3f07e100477034f00dfd6697951
 ```
 
 ## Rebuild Command
+
+The 2026-10-20 PassWall2 migration was validated with both configurations
+through `make defconfig`, plus `make package/xray-core/download` using the
+pinned hash. Disposable OpenWrt-container tests cover fresh install, retained
+node migration, and preserving the old guard when new-guard activation fails
+(`scripts/test-passwall2-migration.sh`). Xray 26.10.17 passed real-router TCP,
+UDP, proxy-stop recovery and unreachable-relay/DNS-block tests. These changes
+have not yet produced or flashed a complete firmware image; the artifact
+listed above is the older known-good build.
 
 Use Docker with daemon access. The current user may not have direct
 `/var/run/docker.sock` permission, so Codex may need escalated execution for

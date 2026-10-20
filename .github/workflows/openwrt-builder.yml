@@ -12,7 +12,7 @@ on:
         description: '编译设备型号'
         required: true
         type: choice
-        default: 'all'
+        default: '128M-Ubootmod'
         options:
           - '128M'
           - '128M-Ubootmod'
@@ -56,7 +56,7 @@ env:
   UPLOAD_RELEASE: ${{ github.event.inputs.release || github.event.client_payload.release }}
   PRERELEASE: ${{ github.event.inputs.prerelease }}
   TZ: Asia/Shanghai
-  WG_REALITY_SOURCE: ${{ github.workspace }}/.wg-reality-source
+  PASSWALL2_SOURCE: ${{ github.workspace }}/.passwall2-source
 
 jobs:
   menuconfig:
@@ -67,13 +67,13 @@ jobs:
       - name: 🙌 Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout private tunnel manager with read-only deploy key
+      - name: Checkout private PassWall2 with read-only deploy key
         uses: actions/checkout@v4
         with:
-          repository: Demogorgon314/luci-app-wg-reality
-          ref: v0.1.0
-          path: .wg-reality-source
-          ssh-key: ${{ secrets.WG_REALITY_DEPLOY_KEY }}
+          repository: Demogorgon314/openwrt-passwall2
+          ref: c281ed587fef350d898a84f45ac71d56e6d40e8d
+          path: .passwall2-source
+          ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
 
       - name: 🛠️ Init Environment
@@ -155,13 +155,13 @@ jobs:
       - name: 🙌 Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout private tunnel manager with read-only deploy key
+      - name: Checkout private PassWall2 with read-only deploy key
         uses: actions/checkout@v4
         with:
-          repository: Demogorgon314/luci-app-wg-reality
-          ref: v0.1.0
-          path: .wg-reality-source
-          ssh-key: ${{ secrets.WG_REALITY_DEPLOY_KEY }}
+          repository: Demogorgon314/openwrt-passwall2
+          ref: c281ed587fef350d898a84f45ac71d56e6d40e8d
+          path: .passwall2-source
+          ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
 
       - name: 🪠 Free Disk Space
@@ -255,7 +255,8 @@ jobs:
             
             # 4. 刷新配置并下载
             make defconfig
-            grep -q '^CONFIG_PACKAGE_luci-app-wg-reality=y$' .config
+            grep -q '^CONFIG_PACKAGE_luci-app-passwall2=y$' .config
+            grep -q '^CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y$' .config
             grep -q '^CONFIG_PACKAGE_xray-core=y$' .config
             make download -j$(nproc)
             
@@ -299,8 +300,8 @@ jobs:
             cp "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
           done
           find bin/targets/ -name '*.manifest' -exec cp '{}' "$GITHUB_WORKSPACE/firmware_collection/" \;
-          grep -q '^luci-app-wg-reality - 0.1.0-r4$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
-          grep -q '^xray-core - 26.3.27-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          grep -q '^luci-app-passwall2 - 26.10.20-r3$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          grep -q '^xray-core - 26.10.17-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
           (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 
           echo "status=success" >> $GITHUB_OUTPUT

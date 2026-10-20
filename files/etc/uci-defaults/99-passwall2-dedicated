@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+# Existing node credentials stay in UCI; fresh installations remain offline
+# until the user configures and enables a node in LuCI.
+[ -s /etc/config/passwall2 ] || cp /usr/share/passwall2/0_default_config /etc/config/passwall2
+uci set passwall2.@global[0].kill_switch='1'
+uci set passwall2.@global_app[0].xray_file='/usr/bin/xray'
+uci commit passwall2
+uci set firewall.@defaults[0].flow_offloading='0'
+uci set firewall.@defaults[0].flow_offloading_hw='0'
+uci commit firewall
+# A numeric time server avoids needing direct DNS before Reality starts.
+if ! uci -q get system.ntp >/dev/null; then
+    uci set system.ntp=timeserver
+    uci set system.ntp.enabled='1'
+fi
+uci -q delete system.ntp.server || true
+uci add_list system.ntp.server='162.159.200.1'
+uci commit system
+/etc/init.d/passwall2_guard enable
+/usr/share/passwall2/kill_switch.sh || exit 1
+nft list table inet passwall2_guard >/dev/null 2>&1 || exit 1
+
+# Retire external guards only after the new policy is active. Archive their
+# includes so a preserved sysupgrade configuration cannot re-enable them.
+mkdir -p /etc/passwall2/legacy
+for name in 90-wg-reality 91-att-proxy; do
+    file="/usr/share/nftables.d/ruleset-post/$name.nft"
+    [ ! -f "$file" ] || mv "$file" "/etc/passwall2/legacy/$name.nft.disabled"
+done
+for service in wg-reality att-proxy; do
+    [ ! -x "/etc/init.d/$service" ] || "/etc/init.d/$service" disable
+done
+nft delete table inet att_proxy 2>/dev/null || true
+nft delete table inet wg_reality 2>/dev/null || true
+# First boot starts PassWall2 at S99. Avoid restarting it during boot defaults.
+/etc/init.d/passwall2 enable
+exit 0

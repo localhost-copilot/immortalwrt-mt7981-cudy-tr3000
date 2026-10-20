@@ -30,6 +30,8 @@ fi
 # 临时解决Rust问题
 sed -i 's/ci-llvm=true/ci-llvm=false/g' feeds/packages/lang/rust/Makefile
 
+bash "$(dirname "$(readlink -f "$0")")/scripts/prepare-passwall2-golang.sh"
+
 # add date in output file name
 sed -i -e '/^IMG_PREFIX:=/i BUILD_DATE := $(shell date +%Y%m%d)' \
        -e '/^IMG_PREFIX:=/ s/\($(SUBTARGET)\)/\1-$(BUILD_DATE)/' include/image.mk

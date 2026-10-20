@@ -7,6 +7,9 @@ if [ "${IN_IMMORTALWRT_BUILD_CONTAINER:-0}" != "1" ]; then
   WORKDIR="${WORKDIR:-$REPO_ROOT/.build/openwrt-workdir}"
   DEVICE_INPUT="${DEVICE_INPUT:-128M-Ubootmod}"
   DOCKER_BIN="${DOCKER:-docker}"
+  PASSWALL2_SOURCE="${PASSWALL2_SOURCE:-$REPO_ROOT/../openwrt-passwall2}"
+  test -d "$PASSWALL2_SOURCE/.git" || { echo "Set PASSWALL2_SOURCE to the private PassWall2 checkout" >&2; exit 1; }
+  PASSWALL2_SOURCE="$(cd "$PASSWALL2_SOURCE" && pwd)"
 
   mkdir -p "$WORKDIR" "$REPO_ROOT/firmware_collection"
 
@@ -16,9 +19,11 @@ if [ "${IN_IMMORTALWRT_BUILD_CONTAINER:-0}" != "1" ]; then
     -e HOST_GID="$(id -g)" \
     -e DEVICE_INPUT="$DEVICE_INPUT" \
     -e GITHUB_WORKSPACE=/workspace \
+    -e PASSWALL2_SOURCE=/passwall2-source \
     -e TZ="${TZ:-Asia/Shanghai}" \
     -v "$REPO_ROOT":/workspace \
     -v "$WORKDIR":/workdir \
+    -v "$PASSWALL2_SOURCE":/passwall2-source:ro \
     -w /workspace \
     ubuntu:22.04 /workspace/scripts/local-build.sh
 fi
@@ -37,11 +42,15 @@ export CCACHE_DIR="${CCACHE_DIR:-/workdir/.ccache}"
 export CCACHE_MAXSIZE="${CCACHE_MAXSIZE:-2G}"
 
 apt-get -qq update
+MULTILIB_PACKAGES=()
+if [ "$(dpkg --print-architecture)" = amd64 ]; then
+  MULTILIB_PACKAGES=(gcc-multilib g++-multilib lib32gcc-s1 libc6-dev-i386)
+fi
 apt-get -qq install -y --no-install-recommends \
   ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
   bzip2 ca-certificates ccache clang cmake cpio curl device-tree-compiler ecj \
-  fastjar flex gawk gettext gcc-multilib g++-multilib git gnutls-dev gperf \
-  haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev \
+  fastjar flex gawk gettext "${MULTILIB_PACKAGES[@]}" git gnutls-dev gperf \
+  haveged help2man intltool libelf-dev libglib2.0-dev \
   libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
   libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs \
   msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip \
@@ -58,7 +67,7 @@ if ! id builder >/dev/null 2>&1; then
 fi
 
 mkdir -p /workdir "$CCACHE_DIR" "$GITHUB_WORKSPACE/firmware_collection"
-chown -R builder:builder /workdir "$CCACHE_DIR" "$GITHUB_WORKSPACE/firmware_collection"
+chown -R "$(id -u builder):$(id -g builder)" /workdir "$CCACHE_DIR" "$GITHUB_WORKSPACE/firmware_collection"
 
 su builder -c '
 set -euo pipefail
@@ -83,7 +92,7 @@ rm -rf \
   package/openwrt-bandix \
   package/vohive \
   package/luci-compat-keep
-rm -rf package/luci-app-wg-reality package/xray-core
+rm -rf package/luci-app-wg-reality package/luci-app-passwall2 package/xray-core
 
 rm -f \
   files/etc/uci-defaults/93-demogorgon314-badge \
@@ -153,7 +162,8 @@ for DEV in $DEVICES; do
   fi
   test "$(readlink package/network/config/netifd/files/sbin/ifdown)" = ifup
   make defconfig
-  grep -qx "CONFIG_PACKAGE_luci-app-wg-reality=y" .config
+  grep -qx "CONFIG_PACKAGE_luci-app-passwall2=y" .config
+  grep -qx "CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y" .config
   grep -qx "CONFIG_PACKAGE_xray-core=y" .config
   make download -j"$(nproc)"
   if ! make -j"$(nproc)" CC="ccache gcc" CXX="ccache g++"; then
@@ -189,8 +199,8 @@ find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" art
   cp -f "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
 done
 find bin/targets/ -name "*.manifest" -exec cp {} "$GITHUB_WORKSPACE/firmware_collection/" \;
-grep -qx "luci-app-wg-reality - 0.1.0-r4" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
-grep -qx "xray-core - 26.3.27-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+grep -qx "luci-app-passwall2 - 26.10.20-r3" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+grep -qx "xray-core - 26.10.17-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
 (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 ccache -s
 '

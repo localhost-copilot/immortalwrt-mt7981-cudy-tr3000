@@ -1,0 +1,5 @@
+/etc/config/passwall2
+/etc/config/passwall2_server
+/etc/passwall2/
+# Keep old profiles as backups when moving from the previous firmware.
+/etc/wg-reality/

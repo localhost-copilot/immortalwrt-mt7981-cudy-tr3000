@@ -51,8 +51,11 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## 第三方软件包
 
-- [WireGuard Reality 管理插件 v0.1.0](https://github.com/Demogorgon314/luci-app-wg-reality)：内置 WireGuard 工具及固定校验和的官方 Xray 26.3.27 ARM64 核心。默认断网保护，未导入连接前客户端无法访问外网；管理页和 SSH 通过 LAN 使用。
-- 固件不再包含 OpenClash / VoHive。保留配置升级会保留 `/etc/wg-reality/` 中的连接资料；刷机前仍需导出备份。
+- [私有定制 PassWall2 26.10.20-r3](https://github.com/Demogorgon314/openwrt-passwall2)：固定源码提交，内置中文界面、独立断线保护及 SHA-256 校验的官方 Xray 26.10.17 ARM64 核心（上游预发布版）。客户端 TCP / UDP 通过配置的节点访问外网。
+- 专用路由器默认开启“断线禁止直连”：代理停止或节点不可达时阻止直连。全新安装需配置并开启 IPv4 节点才可上网；管理页和 SSH 仍通过 LAN 使用。此功能不支持自动展开域名、分流或链式节点，详见私有仓库说明。
+- 固件不再包含旧 WireGuard Reality 管理插件、OpenClash / VoHive。保留配置升级会保留 PassWall2 节点、保护规则和旧 `/etc/wg-reality/` 资料；先启用新保护再移除旧规则。迁移将 Xray 路径切换到内置 `/usr/bin/xray`。刷机前仍需导出备份。
+- GitHub Actions 使用 `PASSWALL2_DEPLOY_KEY` 只读部署密钥读取私有源码。本地构建默认从同级 `../openwrt-passwall2` 读取固定提交，可设置 `PASSWALL2_SOURCE` 指定路径；不向容器传递 GitHub 私钥。
+- PassWall 依赖 feed 和新版 Go 构建工具也固定提交；旧 feed 的 Go 1.23 无法编译 geoview 0.2.8。构建结束会检查 PassWall2 / Xray 的实际 manifest 版本。默认构建目标为 `128M-Ubootmod`（112M UBI）。
 - [Bandix](https://github.com/timsaya/luci-app-bandix)
 - [luci-theme-aurora](https://github.com/eamonxg/luci-theme-aurora)
 - [luci-app-aurora-config](https://github.com/eamonxg/luci-app-aurora-config)
@@ -105,7 +108,8 @@ mkdir -p "$BIN_DIR"
 
 # -------- 下载并解压 xray-core ARM64 -------
 echo "Downloading xray-core..."
-curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/v25.10.15/Xray-linux-arm64-v8a.zip
+curl -fL -o xray.zip https://github.com/XTLS/Xray-core/releases/download/v26.10.17/Xray-linux-arm64-v8a.zip
+echo '4ebdad86048fa499e65334f88a120b1ed17e662f1c222afd3514afdf8820cdb1  xray.zip' | sha256sum -c - || exit 1
 unzip -o xray.zip -d "$BIN_DIR"
 chmod +x "$BIN_DIR/xray"
 rm xray.zip
