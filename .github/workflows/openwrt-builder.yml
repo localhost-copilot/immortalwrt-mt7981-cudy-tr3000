@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Demogorgon314/openwrt-passwall2
-          ref: c281ed587fef350d898a84f45ac71d56e6d40e8d
+          ref: add8da27e55f78d38d507dfaeb54279840096516
           path: .passwall2-source
           ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
@@ -159,7 +159,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Demogorgon314/openwrt-passwall2
-          ref: c281ed587fef350d898a84f45ac71d56e6d40e8d
+          ref: add8da27e55f78d38d507dfaeb54279840096516
           path: .passwall2-source
           ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
@@ -300,7 +300,7 @@ jobs:
             cp "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
           done
           find bin/targets/ -name '*.manifest' -exec cp '{}' "$GITHUB_WORKSPACE/firmware_collection/" \;
-          grep -q '^luci-app-passwall2 - 26.10.20-r3$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          grep -q '^luci-app-passwall2 - 26.10.20-r4$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
           grep -q '^xray-core - 26.10.17-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
           (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 

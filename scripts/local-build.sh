@@ -199,7 +199,7 @@ find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" art
   cp -f "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
 done
 find bin/targets/ -name "*.manifest" -exec cp {} "$GITHUB_WORKSPACE/firmware_collection/" \;
-grep -qx "luci-app-passwall2 - 26.10.20-r3" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+grep -qx "luci-app-passwall2 - 26.10.20-r4" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
 grep -qx "xray-core - 26.10.17-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
 (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 ccache -s

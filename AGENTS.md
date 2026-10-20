@@ -24,11 +24,15 @@ scripts, then collect firmware artifacts back into this workspace.
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
 - OpenClash and the old `luci-app-wg-reality` are no longer included.
-  Use private PassWall2 26.10.20-r3 at c281ed587fef350d898a84f45ac71d56e6d40e8d
+  Use private PassWall2 26.10.20-r4 at add8da27e55f78d38d507dfaeb54279840096516
   with the SHA-256 pinned official ARM64 Xray 26.10.17 prerelease.
   `scripts/prepare-passwall2.sh` also pins the PassWall dependency feed.
   `scripts/prepare-passwall2-golang.sh` pins the compatible Go tooling;
   geoview 0.2.8 cannot build with the original Go 1.23 feed.
+  The r4 monitor adds authenticated, read-only telemetry and optional Bandix
+  device traffic. Its exit probe uses Xray's loopback SOCKS input only. Bandix
+  traffic collection is enabled separately; do not enable DNS logging or disk
+  history just to use the dashboard.
 - `diy-part2.sh` repairs the upstream literal `ifup` file at
   `package/network/config/netifd/files/sbin/ifdown` into the intended symlink.
 - Preserve `/etc/config/passwall2`, `/etc/passwall2/`, and old

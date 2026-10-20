@@ -4,7 +4,7 @@ set -euo pipefail
 # Run from the OpenWrt source tree. Never pass private GitHub credentials to
 # the build container: export the pinned local checkout on the host instead.
 RECIPE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PASSWALL2_REV=c281ed587fef350d898a84f45ac71d56e6d40e8d
+PASSWALL2_REV=add8da27e55f78d38d507dfaeb54279840096516
 PASSWALL_PACKAGES_REV=a6e290333b392671678781d1a629d22c6510b6fd
 source_dir="${PASSWALL2_SOURCE:?Set PASSWALL2_SOURCE to the authenticated private checkout}"
 test "$(git -C "$source_dir" rev-parse HEAD)" = "$PASSWALL2_REV"

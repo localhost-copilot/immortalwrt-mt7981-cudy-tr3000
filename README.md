@@ -51,7 +51,8 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## 第三方软件包
 
-- [私有定制 PassWall2 26.10.20-r3](https://github.com/Demogorgon314/openwrt-passwall2)：固定源码提交，内置中文界面、独立断线保护及 SHA-256 校验的官方 Xray 26.10.17 ARM64 核心（上游预发布版）。客户端 TCP / UDP 通过配置的节点访问外网。
+- [私有定制 PassWall2 26.10.20-r4](https://github.com/Demogorgon314/openwrt-passwall2)：固定源码提交，内置中文界面、独立断线保护及 SHA-256 校验的官方 Xray 26.10.17 ARM64 核心（上游预发布版）。客户端 TCP / UDP 通过配置的节点访问外网。
+- “实时监控”页提供 WAN 流量曲线、CPU / 内存、出口 IP 和保护状态；设备速率复用 Bandix，需单独开启其流量统计。页面不依赖外部 CDN，退出页面后停止采样。
 - 专用路由器默认开启“断线禁止直连”：代理停止或节点不可达时阻止直连。全新安装需配置并开启 IPv4 节点才可上网；管理页和 SSH 仍通过 LAN 使用。此功能不支持自动展开域名、分流或链式节点，详见私有仓库说明。
 - 固件不再包含旧 WireGuard Reality 管理插件、OpenClash / VoHive。保留配置升级会保留 PassWall2 节点、保护规则和旧 `/etc/wg-reality/` 资料；先启用新保护再移除旧规则。迁移将 Xray 路径切换到内置 `/usr/bin/xray`。刷机前仍需导出备份。
 - GitHub Actions 使用 `PASSWALL2_DEPLOY_KEY` 只读部署密钥读取私有源码。本地构建默认从同级 `../openwrt-passwall2` 读取固定提交，可设置 `PASSWALL2_SOURCE` 指定路径；不向容器传递 GitHub 私钥。
