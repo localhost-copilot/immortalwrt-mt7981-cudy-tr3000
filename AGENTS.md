@@ -31,6 +31,10 @@ scripts, then collect firmware artifacts back into this workspace.
   `package/network/config/netifd/files/sbin/ifdown` into the intended symlink.
 - Preserve `/etc/wg-reality/` during upgrades; the plugin installs a
   `/lib/upgrade/keep.d/wg-reality` entry for its private profile and backups.
+- The tunnel repository is private. Actions checks out its pinned tag using
+  the `WG_REALITY_DEPLOY_KEY` secret, a read-only deploy key on that repository.
+  `WG_REALITY_SOURCE` lets `diy-part1.sh` clone this authenticated local checkout.
+  Do not replace it with a broad personal token or change repository visibility.
 
 The successful 112M build produced:
 
