@@ -23,5 +23,5 @@ git clone https://github.com/timsaya/luci-app-bandix package/luci-app-bandix
 git clone https://github.com/timsaya/openwrt-bandix package/openwrt-bandix
 
 # Pin the manager and its tested official ARM64 Xray binary together.
-git clone --depth 1 --branch v0.1.0 https://github.com/Demogorgon314/luci-app-wg-reality package/luci-app-wg-reality
+git clone --depth 1 --branch v0.1.0 "${WG_REALITY_SOURCE:-https://github.com/Demogorgon314/luci-app-wg-reality}" package/luci-app-wg-reality
 mv package/luci-app-wg-reality/packages/xray-core package/xray-core
