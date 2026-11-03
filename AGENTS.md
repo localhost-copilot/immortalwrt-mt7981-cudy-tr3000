@@ -21,18 +21,32 @@ scripts, then collect firmware artifacts back into this workspace.
   `.build/openwrt-workdir`
 - Artifact output directory:
   `firmware_collection/`
+- Default theme: Vantage v1.0.12, pinned to
+  `430e77c0f166f87235289fb45aeda843ca0bdc24` in `diy-part1.sh`.
+  Both configurations include the dashboard and both Simplified Chinese
+  packages, replacing Aurora and its settings app. Bootstrap remains available.
+  `files/etc/uci-defaults/zz-vantage-theme` selects Vantage once on each new
+  firmware's first boot, including upgrades that preserve LuCI settings.
+  Later user theme selections persist until another firmware upgrade.
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
 - OpenClash and the old `luci-app-wg-reality` are no longer included.
-  Use private PassWall2 26.10.20-r5 at ac3c9850bd6ee33972f84d1bb71226c50d5f399c
-  with the SHA-256 pinned official ARM64 Xray 26.10.17 prerelease.
+  Use private PassWall2 26.10.20-r5 at a488534934ea6a691cef402325db30ef8b747ad3
+  with the SHA-256 pinned official ARM64 Xray 26.10.31 release.
   `scripts/prepare-passwall2.sh` also pins the PassWall dependency feed.
   `scripts/prepare-passwall2-golang.sh` pins the compatible Go tooling;
   geoview 0.2.8 cannot build with the original Go 1.23 feed.
+  After the final feed install, `diy-part2.sh` removes feed Xray override
+  links. Builds must select `package/xray-core/Makefile` in `tmp/.packageinfo`;
+  otherwise feeds can silently replace the pinned binary with their recipe.
   The r4 monitor adds authenticated, read-only telemetry and optional Bandix
   device traffic. Its exit probe uses Xray's loopback SOCKS input only. Bandix
   traffic collection is enabled separately; do not enable DNS logging or disk
   history just to use the dashboard.
+  The latest private source adds LAN route exceptions and bounded traffic
+  history without changing its r5 package version. The recipe disables the
+  history service's automatic enable/start; users opt in explicitly after
+  installing firmware. Existing history files remain in upgrade backups.
 - `diy-part2.sh` repairs the upstream literal `ifup` file at
   `package/network/config/netifd/files/sbin/ifdown` into the intended symlink.
 - Preserve `/etc/config/passwall2`, `/etc/passwall2/`, and old
@@ -61,6 +75,14 @@ node migration, and preserving the old guard when new-guard activation fails
 UDP, proxy-stop recovery and unreachable-relay/DNS-block tests. These changes
 have not yet produced or flashed a complete firmware image; the artifact
 listed above is the older known-good build.
+
+The 2026-11-03 update pins Vantage v1.0.12, the latest private PassWall2
+commit above, and Xray 26.10.31. Validate both device configurations with
+`make defconfig` and check `make package/xray-core/download` against the
+new hash. In a privileged disposable OpenWrt container, enable
+`TEST_PACKET_LEAKS=1` for the migration test to verify backup/restore and
+IPv4/IPv6/DNS blocking across service stop, relay failure, firewall reload
+and guard generation/application failure. Never run these scripts on a router.
 
 Use Docker with daemon access. The current user may not have direct
 `/var/run/docker.sock` permission, so Codex may need escalated execution for

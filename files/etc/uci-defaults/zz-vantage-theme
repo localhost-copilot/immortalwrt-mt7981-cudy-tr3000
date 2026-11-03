@@ -1,0 +1,5 @@
+#!/bin/sh
+# Run after package defaults so the firmware consistently starts with Vantage,
+# including upgrades that retain the previous firmware's LuCI settings.
+uci set luci.main.mediaurlbase='/luci-static/vantage' || exit 1
+uci commit luci

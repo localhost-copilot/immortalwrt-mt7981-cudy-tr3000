@@ -21,9 +21,6 @@ fi
 
 #sed -i 's/192.168.1.1/192.168.50.5/g' package/base-files/files/bin/config_generate
 
-# Modify default theme
-#sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
-
 # Modify hostname
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
 
@@ -31,6 +28,15 @@ fi
 sed -i 's/ci-llvm=true/ci-llvm=false/g' feeds/packages/lang/rust/Makefile
 
 bash "$(dirname "$(readlink -f "$0")")/scripts/prepare-passwall2-golang.sh"
+
+# Feed installs mark their Xray recipes as overrides of package/xray-core.
+# Remove those links after the final feed install so the verified binary wins.
+for package_link in package/feeds/*/xray-core; do
+  if [ -L "$package_link" ]; then
+    rm "$package_link"
+  fi
+done
+touch package/xray-core/Makefile
 
 # add date in output file name
 sed -i -e '/^IMG_PREFIX:=/i BUILD_DATE := $(shell date +%Y%m%d)' \

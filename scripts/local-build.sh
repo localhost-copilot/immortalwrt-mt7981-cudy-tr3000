@@ -162,9 +162,13 @@ for DEV in $DEVICES; do
   fi
   test "$(readlink package/network/config/netifd/files/sbin/ifdown)" = ifup
   make defconfig
+  for package in luci-theme-vantage luci-app-vantage luci-i18n-vantage-zh-cn luci-i18n-vantage-theme-zh-cn; do
+    grep -qx "CONFIG_PACKAGE_${package}=y" .config
+  done
   grep -qx "CONFIG_PACKAGE_luci-app-passwall2=y" .config
   grep -qx "CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y" .config
   grep -qx "CONFIG_PACKAGE_xray-core=y" .config
+  grep -qx "Source-Makefile: package/xray-core/Makefile" tmp/.packageinfo
   make download -j"$(nproc)"
   if ! make -j"$(nproc)" CC="ccache gcc" CXX="ccache g++"; then
     make -j1 V=s
@@ -199,8 +203,11 @@ find bin/targets/ -name "*sysupgrade.bin" -print0 | while IFS= read -r -d "" art
   cp -f "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
 done
 find bin/targets/ -name "*.manifest" -exec cp {} "$GITHUB_WORKSPACE/firmware_collection/" \;
+for package in luci-theme-vantage luci-app-vantage luci-i18n-vantage-zh-cn luci-i18n-vantage-theme-zh-cn; do
+  grep -qx "${package} - 1.0.12-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+done
 grep -qx "luci-app-passwall2 - 26.10.20-r5" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
-grep -qx "xray-core - 26.10.17-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+grep -qx "xray-core - 26.10.31-r1" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
 (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 ccache -s
 '

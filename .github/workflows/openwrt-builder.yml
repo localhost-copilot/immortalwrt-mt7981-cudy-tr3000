@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Demogorgon314/openwrt-passwall2
-          ref: ac3c9850bd6ee33972f84d1bb71226c50d5f399c
+          ref: a488534934ea6a691cef402325db30ef8b747ad3
           path: .passwall2-source
           ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
@@ -159,7 +159,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Demogorgon314/openwrt-passwall2
-          ref: ac3c9850bd6ee33972f84d1bb71226c50d5f399c
+          ref: a488534934ea6a691cef402325db30ef8b747ad3
           path: .passwall2-source
           ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
@@ -255,9 +255,13 @@ jobs:
             
             # 4. 刷新配置并下载
             make defconfig
+            for package in luci-theme-vantage luci-app-vantage luci-i18n-vantage-zh-cn luci-i18n-vantage-theme-zh-cn; do
+              grep -q "^CONFIG_PACKAGE_${package}=y$" .config
+            done
             grep -q '^CONFIG_PACKAGE_luci-app-passwall2=y$' .config
             grep -q '^CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y$' .config
             grep -q '^CONFIG_PACKAGE_xray-core=y$' .config
+            grep -qx 'Source-Makefile: package/xray-core/Makefile' tmp/.packageinfo
             make download -j$(nproc)
             
             # 5. 开始编译
@@ -300,8 +304,11 @@ jobs:
             cp "$artifact" "$GITHUB_WORKSPACE/firmware_collection/$filename"
           done
           find bin/targets/ -name '*.manifest' -exec cp '{}' "$GITHUB_WORKSPACE/firmware_collection/" \;
+          for package in luci-theme-vantage luci-app-vantage luci-i18n-vantage-zh-cn luci-i18n-vantage-theme-zh-cn; do
+            grep -q "^${package} - 1.0.12-r1$" "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          done
           grep -q '^luci-app-passwall2 - 26.10.20-r5$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
-          grep -q '^xray-core - 26.10.17-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
+          grep -q '^xray-core - 26.10.31-r1$' "$GITHUB_WORKSPACE"/firmware_collection/*.manifest
           (cd "$GITHUB_WORKSPACE/firmware_collection" && sha256sum *.bin > SHA256SUMS)
 
           echo "status=success" >> $GITHUB_OUTPUT

@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=xray-core
-PKG_VERSION:=26.10.17
+PKG_VERSION:=26.10.31
 PKG_RELEASE:=1
 PKG_SOURCE:=Xray-$(PKG_VERSION)-linux-arm64-v8a.zip
 PKG_SOURCE_URL:=https://github.com/XTLS/Xray-core/releases/download/v$(PKG_VERSION)/
 PKG_SOURCE_URL_FILE:=Xray-linux-arm64-v8a.zip
-PKG_HASH:=4ebdad86048fa499e65334f88a120b1ed17e662f1c222afd3514afdf8820cdb1
+PKG_HASH:=1811c8f1da0c3b6dc707ebaf1c8390e987ba39859a8f0a7aadd8526157f2ec8d
 PKG_LICENSE:=MPL-2.0
 PKG_MAINTAINER:=Demogorgon314
 

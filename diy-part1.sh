@@ -17,8 +17,9 @@
 #echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
 
-git clone https://github.com/eamonxg/luci-theme-aurora package/luci-theme-aurora
-git clone https://github.com/eamonxg/luci-app-aurora-config package/luci-app-aurora-config
+# Vantage v1.0.12: pin the tested theme and dashboard to the release commit.
+sed -i '/^src-git vantage /d' feeds.conf.default
+echo 'src-git vantage https://github.com/anothaDev/luci-theme-vantage.git^430e77c0f166f87235289fb45aeda843ca0bdc24' >> feeds.conf.default
 git clone https://github.com/timsaya/luci-app-bandix package/luci-app-bandix
 git clone https://github.com/timsaya/openwrt-bandix package/openwrt-bandix
 
