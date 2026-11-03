@@ -336,6 +336,22 @@ jobs:
           **📱 Device:** ${DEVICE_INPUT}
           **📅 Build Date:** $(date +"%Y-%m-%d %H:%M:%S")
           **🔨 Compiler:** GCC with ccache
+          **Recipe Commit:** $GITHUB_SHA
+          **Upstream Commit:** $(git -C /workdir/openwrt rev-parse HEAD)
+
+          ## 更新内容
+
+          - 默认使用 Vantage v1.0.12，包含仪表盘及主题 / 仪表盘中文包；移除 Aurora 及主题编辑器，保留 Bootstrap 备用。
+          - 私有 PassWall2 固定到 a488534934ea6a691cef402325db30ef8b747ad3（包版本仍为 26.10.20-r5）。
+          - 内置官方 ARM64 Xray 26.10.31，下载包按固定 SHA-256 校验，并检查实际构建配方和产物版本。
+          - Ubootmod 目标保持默认 112M UBI 分区。
+
+          ## 升级说明
+
+          - 升级到本固件并保留配置时，保留 PassWall2 节点、保护规则、历史文件及旧 wg-reality 备份；首次启动切换到 Vantage。
+          - 断线保护默认启用。全新安装需要配置并启用数值 IPv4 节点，才能通过代理上网；LAN 管理页和 SSH 仍可使用。
+          - 流量历史采集默认关闭，需要时单独开启 passwall2_history 服务。
+          - 已通过配置迁移和隔离容器的 IPv4 / IPv6 / DNS 防直连测试；新固件尚未完成实机刷写与重启验证。刷机前请导出配置备份。
 
           ## 📥 Download
 
@@ -353,6 +369,7 @@ jobs:
         if: steps.tag.outputs.status == 'success'
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
+          target_commitish: ${{ github.sha }}
           body_path: release.txt
           prerelease: ${{ env.PRERELEASE == 'true' }}
           files: ${{ github.workspace }}/firmware_collection/*
