@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run from the OpenWrt source tree. Never pass private GitHub credentials to
-# the build container: export the pinned local checkout on the host instead.
+# Run from the OpenWrt source tree using the pinned public local checkout.
 RECIPE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PASSWALL2_REV=a488534934ea6a691cef402325db30ef8b747ad3
+PASSWALL2_REV=5668736e0c7dd010c83c726c2f07a5a9045ac983
 PASSWALL_PACKAGES_REV=a6e290333b392671678781d1a629d22c6510b6fd
-source_dir="${PASSWALL2_SOURCE:?Set PASSWALL2_SOURCE to the authenticated private checkout}"
+source_dir="${PASSWALL2_SOURCE:?Set PASSWALL2_SOURCE to the public PassWall2 checkout}"
 test "$(git -C "$source_dir" rev-parse HEAD)" = "$PASSWALL2_REV"
 mkdir -p package/luci-app-passwall2
 git -C "$source_dir" archive "$PASSWALL2_REV:luci-app-passwall2" | tar -x -C package/luci-app-passwall2

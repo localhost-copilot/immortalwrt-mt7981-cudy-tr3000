@@ -45,7 +45,7 @@ sed -i -e '/^IMG_PREFIX:=/i BUILD_DATE := $(shell date +%Y%m%d)' \
 # Add a firmware link below the overview firmware version.
 STATUS_SYSTEM_JS="feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js"
 if [ -f "$STATUS_SYSTEM_JS" ]; then
-  sed -i "s#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),\\n\\t\\t\\t'固件地址', E('a', { href: 'https://github.com/Demogorgon314/immortalwrt-mt7981-cudy-tr3000/releases', target: '_blank', rel: 'noopener noreferrer' }, [ 'https://github.com/Demogorgon314/immortalwrt-mt7981-cudy-tr3000/releases' ]),#" "$STATUS_SYSTEM_JS"
+  sed -i "s#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),#_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || ''),\\n\\t\\t\\t'固件地址', E('a', { href: 'https://github.com/localhost-copilot/immortalwrt-mt7981-cudy-tr3000/releases', target: '_blank', rel: 'noopener noreferrer' }, [ 'https://github.com/localhost-copilot/immortalwrt-mt7981-cudy-tr3000/releases' ]),#" "$STATUS_SYSTEM_JS"
 fi
 
 # set ubi to 122M

@@ -23,5 +23,5 @@ echo 'src-git vantage https://github.com/anothaDev/luci-theme-vantage.git^430e77
 git clone https://github.com/timsaya/luci-app-bandix package/luci-app-bandix
 git clone https://github.com/timsaya/openwrt-bandix package/openwrt-bandix
 
-# Install the tested private manager, its dependencies and pinned Xray.
+# Install the tested custom manager, its dependencies and pinned Xray.
 bash "$(dirname "$(readlink -f "$0")")/scripts/prepare-passwall2.sh"

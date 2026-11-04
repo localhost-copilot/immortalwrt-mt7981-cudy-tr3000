@@ -31,7 +31,7 @@ scripts, then collect firmware artifacts back into this workspace.
 - VoHive is no longer included. The local build script retains cleanup of
   its old checkout and cached artifacts to support existing build directories.
 - OpenClash and the old `luci-app-wg-reality` are no longer included.
-  Use private PassWall2 26.10.20-r5 at a488534934ea6a691cef402325db30ef8b747ad3
+  Use custom PassWall2 26.10.20-r5 at 5668736e0c7dd010c83c726c2f07a5a9045ac983
   with the SHA-256 pinned official ARM64 Xray 26.10.31 release.
   `scripts/prepare-passwall2.sh` also pins the PassWall dependency feed.
   `scripts/prepare-passwall2-golang.sh` pins the compatible Go tooling;
@@ -43,7 +43,7 @@ scripts, then collect firmware artifacts back into this workspace.
   device traffic. Its exit probe uses Xray's loopback SOCKS input only. Bandix
   traffic collection is enabled separately; do not enable DNS logging or disk
   history just to use the dashboard.
-  The latest private source adds LAN route exceptions and bounded traffic
+  The custom source adds LAN route exceptions and bounded traffic
   history without changing its r5 package version. The recipe disables the
   history service's automatic enable/start; users opt in explicitly after
   installing firmware. Existing history files remain in upgrade backups.
@@ -52,11 +52,10 @@ scripts, then collect firmware artifacts back into this workspace.
 - Preserve `/etc/config/passwall2`, `/etc/passwall2/`, and old
   `/etc/wg-reality/` backups during upgrades. The dedicated UCI default enables
   the new guard before retiring old includes and switches Xray to /usr/bin/xray.
-- The PassWall2 repository is private. Actions checks out its pinned commit using
-  the `PASSWALL2_DEPLOY_KEY` secret, a read-only deploy key on that repository.
-  `PASSWALL2_SOURCE` identifies the authenticated local checkout; local Docker
-  builds mount it read-only without passing credentials.
-  Do not replace it with a broad personal token or change repository visibility.
+- Both repositories are public under `localhost-copilot`. Actions checks out
+  `localhost-copilot/openwrt-passwall2` at the pinned commit without a deploy key.
+  `PASSWALL2_SOURCE` identifies the local checkout; local Docker builds mount
+  it read-only. Keep local router backups and credentials out of Git.
 
 The successful 112M build produced:
 
@@ -76,7 +75,7 @@ UDP, proxy-stop recovery and unreachable-relay/DNS-block tests. These changes
 have not yet produced or flashed a complete firmware image; the artifact
 listed above is the older known-good build.
 
-The 2026-11-03 update pins Vantage v1.0.12, the latest private PassWall2
+The 2026-11-03 update pins Vantage v1.0.12, the custom PassWall2
 commit above, and Xray 26.10.31. Validate both device configurations with
 `make defconfig` and check `make package/xray-core/download` against the
 new hash. In a privileged disposable OpenWrt container, enable

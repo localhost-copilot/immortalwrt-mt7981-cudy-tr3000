@@ -1,6 +1,6 @@
 #!/bin/sh
 # Run only in a disposable OpenWrt container with NET_ADMIN, nft, Lua and UCI.
-# Mount the firmware recipe at /recipe and the private fork at /passwall2-source.
+# Mount the firmware recipe at /recipe and the public fork at /passwall2-source.
 set -eu
 test -f /.dockerenv
 # The container skips OpenWrt's normal board configuration generation.

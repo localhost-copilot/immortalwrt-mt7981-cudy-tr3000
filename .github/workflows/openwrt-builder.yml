@@ -67,13 +67,12 @@ jobs:
       - name: 🙌 Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout private PassWall2 with read-only deploy key
+      - name: Checkout public PassWall2 source
         uses: actions/checkout@v4
         with:
-          repository: Demogorgon314/openwrt-passwall2
-          ref: a488534934ea6a691cef402325db30ef8b747ad3
+          repository: localhost-copilot/openwrt-passwall2
+          ref: 5668736e0c7dd010c83c726c2f07a5a9045ac983
           path: .passwall2-source
-          ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
 
       - name: 🛠️ Init Environment
@@ -155,13 +154,12 @@ jobs:
       - name: 🙌 Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout private PassWall2 with read-only deploy key
+      - name: Checkout public PassWall2 source
         uses: actions/checkout@v4
         with:
-          repository: Demogorgon314/openwrt-passwall2
-          ref: a488534934ea6a691cef402325db30ef8b747ad3
+          repository: localhost-copilot/openwrt-passwall2
+          ref: 5668736e0c7dd010c83c726c2f07a5a9045ac983
           path: .passwall2-source
-          ssh-key: ${{ secrets.PASSWALL2_DEPLOY_KEY }}
           persist-credentials: false
 
       - name: 🪠 Free Disk Space
@@ -342,7 +340,7 @@ jobs:
           ## 更新内容
 
           - 默认使用 Vantage v1.0.12，包含仪表盘及主题 / 仪表盘中文包；移除 Aurora 及主题编辑器，保留 Bootstrap 备用。
-          - 私有 PassWall2 固定到 a488534934ea6a691cef402325db30ef8b747ad3（包版本仍为 26.10.20-r5）。
+          - 定制 PassWall2 固定到 5668736e0c7dd010c83c726c2f07a5a9045ac983（包版本仍为 26.10.20-r5），源码位于公开仓库 localhost-copilot/openwrt-passwall2。
           - 内置官方 ARM64 Xray 26.10.31，下载包按固定 SHA-256 校验，并检查实际构建配方和产物版本。
           - Ubootmod 目标保持默认 112M UBI 分区。
 

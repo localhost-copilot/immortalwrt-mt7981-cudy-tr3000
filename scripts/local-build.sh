@@ -8,7 +8,7 @@ if [ "${IN_IMMORTALWRT_BUILD_CONTAINER:-0}" != "1" ]; then
   DEVICE_INPUT="${DEVICE_INPUT:-128M-Ubootmod}"
   DOCKER_BIN="${DOCKER:-docker}"
   PASSWALL2_SOURCE="${PASSWALL2_SOURCE:-$REPO_ROOT/../openwrt-passwall2}"
-  test -d "$PASSWALL2_SOURCE/.git" || { echo "Set PASSWALL2_SOURCE to the private PassWall2 checkout" >&2; exit 1; }
+  test -d "$PASSWALL2_SOURCE/.git" || { echo "Clone https://github.com/localhost-copilot/openwrt-passwall2 alongside this repo or set PASSWALL2_SOURCE" >&2; exit 1; }
   PASSWALL2_SOURCE="$(cd "$PASSWALL2_SOURCE" && pwd)"
 
   mkdir -p "$WORKDIR" "$REPO_ROOT/firmware_collection"
