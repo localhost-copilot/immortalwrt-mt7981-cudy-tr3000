@@ -130,8 +130,11 @@ The default checked and built variant is 112M.
 
 ## Practical Notes
 
-- Expect a long first build because Rust/LLVM host compilation is enabled by
-  the selected package set.
+- Ruby YJIT is disabled in both configs. It is optional for the retained Ruby
+  interpreter and otherwise pulls in a full Rust host compiler build, which
+  caused the previous Actions release build to exceed its six-hour limit.
+- Expect a long first build because the target toolchain and LLVM BPF tools
+  still compile from source.
 - The first successful build used about 41G in the OpenWrt work directory.
 - The machine had enough resources during the run: 24 CPUs, 94GiB RAM, and more
   than 500G free disk.
