@@ -72,8 +72,8 @@ pinned hash. Disposable OpenWrt-container tests cover fresh install, retained
 node migration, and preserving the old guard when new-guard activation fails
 (`scripts/test-passwall2-migration.sh`). Xray 26.10.17 passed real-router TCP,
 UDP, proxy-stop recovery and unreachable-relay/DNS-block tests. These changes
-have not yet produced or flashed a complete firmware image; the artifact
-listed above is the older known-good build.
+had not yet produced or flashed a complete firmware image at that point;
+the artifact listed above is the older known-good local build.
 
 The 2026-11-03 update pins Vantage v1.0.12, the custom PassWall2
 commit above, and Xray 26.10.31. Validate both device configurations with
@@ -82,6 +82,20 @@ new hash. In a privileged disposable OpenWrt container, enable
 `TEST_PACKET_LEAKS=1` for the migration test to verify backup/restore and
 IPv4/IPv6/DNS blocking across service stop, relay failure, firewall reload
 and guard generation/application failure. Never run these scripts on a router.
+
+Actions run `41761786105` completed the default 112M Ubootmod build and
+published [ImmortalWrt-20261104-1221](https://github.com/localhost-copilot/immortalwrt-mt7981-cudy-tr3000/releases/tag/ImmortalWrt-20261104-1221)
+from recipe `b0c66148bb282f46733f986c8dc8346fe92b1b20` and upstream
+`ec9ef10efc65da1e6d1de4e2c043c0e13d08eed8`. The downloaded 41,739,077-byte
+sysupgrade image has SHA-256
+`1bc1bcb90eec6c975348cbc3e9ac3bc5d9e54a35f989125853b1d5431aa8490f`,
+matching both `SHA256SUMS` and the GitHub asset digest. Its installed-package
+manifest contains all four Vantage 1.0.12 packages, PassWall2 26.10.20-r5,
+and Xray 26.10.31-r1, with no Aurora package. Offline SquashFS checks confirmed
+the PassWall2 init/guard scripts, dedicated migration and Vantage defaults,
+and disabled automatic history collection. The extracted ARM64 Xray binary
+reported 26.10.31 in a disposable container. This image has not been flashed
+or boot-tested on the router.
 
 Use Docker with daemon access. The current user may not have direct
 `/var/run/docker.sock` permission, so Codex may need escalated execution for
