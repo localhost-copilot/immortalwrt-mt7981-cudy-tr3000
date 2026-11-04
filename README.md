@@ -51,7 +51,7 @@ echo 1 > /sys/class/gpio/modem_power/value
 
 ## 第三方软件包
 
-- [定制 PassWall2 26.10.20-r5](https://github.com/localhost-copilot/openwrt-passwall2)：固定源码提交 `5668736e0c7dd010c83c726c2f07a5a9045ac983`（包版本仍为 r5），内置中文界面、独立断线保护及 SHA-256 校验的官方 Xray 26.10.31 ARM64 核心。客户端 TCP / UDP 通过配置的节点访问外网。
+- [定制 PassWall2 26.10.20-r5](https://github.com/localhost-copilot/openwrt-passwall2)：固定源码提交 `d4f79af3b6984da958b15f832b681db4cffec456`（包版本仍为 r5），内置中文界面、独立断线保护及 SHA-256 校验的官方 Xray 26.10.31 ARM64 核心。客户端 TCP / UDP 通过配置的节点访问外网。
 - “实时监控”页提供 WAN 流量曲线、CPU / 内存、出口 IP 和保护状态；设备速率复用 Bandix，需单独开启其流量统计。页面不依赖外部 CDN，退出页面后停止采样。
 - 新版包含链路总览和有界流量历史。固件默认关闭 `passwall2_history`，避免为仪表盘自动开启闪存写入；需要历史时手动执行 `/etc/init.d/passwall2_history enable` 和 `/etc/init.d/passwall2_history start`。已有历史文件随配置保留，刷入新固件后需重新开启采集。
 - 专用路由器默认开启“断线禁止直连”：代理停止或节点不可达时阻止直连。全新安装需配置并开启 IPv4 节点才可上网；管理页和 SSH 仍通过 LAN 使用。此功能不支持自动展开域名、分流或链式节点，详见 [定制说明](https://github.com/localhost-copilot/openwrt-passwall2/blob/main/CUSTOMIZATION.md)。
